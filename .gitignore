@@ -1,23 +1,26 @@
-# Prerequisites
-*.d
-
-# Object files
+# Build output
+build/
 *.o
-*.ko
-*.obj
-*.elf
+*.bin
+*.iso
+*.img
 
-# Linker output
-*.ilk
-*.map
-*.exp
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
 
-# Precompiled Headers
-*.gch
-*.pch
+# Backup files
+*.bak
+*.orig
+
+# OS-specific files
+.DS_Store
+Thumbs.db
 
 # Libraries
-*.lib
 *.a
 *.la
 *.lo

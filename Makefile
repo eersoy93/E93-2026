@@ -1,0 +1,133 @@
+# 32-bit OS Makefile
+# Build system for the kernel
+
+# Toolchain
+AS = nasm
+CC = i686-elf-gcc
+LD = i686-elf-ld
+
+# Directories
+SRC_DIR = src
+BUILD_DIR = build
+ISO_DIR = $(BUILD_DIR)/isodir
+
+# Output files
+KERNEL = $(BUILD_DIR)/kernel.bin
+ISO = $(BUILD_DIR)/os.iso
+
+# Source files
+ASM_SOURCES = $(SRC_DIR)/boot/boot.asm
+C_SOURCES = $(wildcard $(SRC_DIR)/kernel/*.c) \
+            $(wildcard $(SRC_DIR)/drivers/*.c) \
+            $(wildcard $(SRC_DIR)/lib/*.c)
+
+# Object files
+ASM_OBJECTS = $(patsubst $(SRC_DIR)/%.asm,$(BUILD_DIR)/%.o,$(ASM_SOURCES))
+C_OBJECTS = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(C_SOURCES))
+OBJECTS = $(ASM_OBJECTS) $(C_OBJECTS)
+
+# Compiler flags
+CFLAGS = -m32 \
+         -ffreestanding \
+         -fno-stack-protector \
+         -fno-pic \
+         -fno-pie \
+         -nostdlib \
+         -nostdinc \
+         -mno-sse \
+         -mno-sse2 \
+         -mno-mmx \
+         -mno-80387 \
+         -mno-red-zone \
+         -Wall \
+         -Wextra \
+         -Werror \
+         -std=gnu99 \
+         -O2 \
+         -I$(SRC_DIR)/include
+
+# Assembler flags
+ASFLAGS = -f elf32
+
+# Linker flags
+LDFLAGS = -m elf_i386 \
+          -T linker.ld \
+          -nostdlib
+
+# Default target
+.PHONY: all
+all: $(KERNEL)
+
+# Build kernel binary
+$(KERNEL): $(OBJECTS) linker.ld
+	@mkdir -p $(dir $@)
+	$(LD) $(LDFLAGS) -o $@ $(OBJECTS)
+	@echo "Kernel built: $@"
+
+# Compile assembly files
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.asm
+	@mkdir -p $(dir $@)
+	$(AS) $(ASFLAGS) $< -o $@
+
+# Compile C files
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Build ISO image
+.PHONY: iso
+iso: $(ISO)
+
+$(ISO): $(KERNEL) grub.cfg
+	@mkdir -p $(ISO_DIR)/boot/grub
+	cp $(KERNEL) $(ISO_DIR)/boot/kernel.bin
+	cp grub.cfg $(ISO_DIR)/boot/grub/grub.cfg
+	grub-mkrescue -o $@ $(ISO_DIR)
+	@echo "ISO built: $@"
+
+# Run in QEMU
+.PHONY: run
+run: $(KERNEL)
+	qemu-system-i386 -kernel $(KERNEL) -display gtk &
+
+# Run ISO in QEMU
+.PHONY: run-iso
+run-iso: $(ISO)
+	qemu-system-i386 -cdrom $(ISO) -display gtk &
+
+# Clean build files
+.PHONY: clean
+clean:
+	rm -rf $(BUILD_DIR)
+	@echo "Build directory cleaned"
+
+# Install dependencies (Ubuntu/Debian)
+.PHONY: deps
+deps:
+	sudo apt-get update
+	sudo apt-get install -y nasm qemu-system-x86 grub-pc-bin xorriso mtools
+
+# Check if cross-compiler is available
+.PHONY: check-tools
+check-tools:
+	@echo "Checking for required tools..."
+	@which nasm > /dev/null || (echo "nasm not found" && exit 1)
+	@which qemu-system-i386 > /dev/null || (echo "qemu-system-i386 not found" && exit 1)
+	@which grub-mkrescue > /dev/null || (echo "grub-mkrescue not found" && exit 1)
+	@echo "All required tools found!"
+
+# Help
+.PHONY: help
+help:
+	@echo "32-bit OS Build System"
+	@echo ""
+	@echo "Targets:"
+	@echo "  all        - Build the kernel (default)"
+	@echo "  iso        - Build bootable ISO image"
+	@echo "  run        - Run kernel in QEMU (direct boot)"
+	@echo "  run-iso    - Run ISO in QEMU"
+	@echo "  debug      - Run with QEMU debug output"
+	@echo "  clean      - Remove build files"
+	@echo "  deps       - Install dependencies (Ubuntu/Debian)"
+	@echo "  check-tools- Verify required tools are installed"
+	@echo "  help       - Show this help message"
