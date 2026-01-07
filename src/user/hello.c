@@ -2,9 +2,8 @@
  * Hello World - C Version
  * A simple userspace program written in C
  * 
- * Compile with:
- *   i686-elf-gcc -m32 -ffreestanding -nostdlib -nostdinc -fno-pic -c hello.c -o hello.o
- *   i686-elf-ld -m elf_i386 -Ttext=0x400000 --oformat binary -o hello.bin hello.o
+ * Compiled as ELF32 executable by the build system.
+ * Entry point: _start at virtual address 0x400000
  */
 
 #include "user.h"

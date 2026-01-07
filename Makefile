@@ -22,9 +22,9 @@ C_SOURCES = $(wildcard $(SRC_DIR)/kernel/*.c) \
             $(wildcard $(SRC_DIR)/drivers/*.c) \
             $(wildcard $(SRC_DIR)/lib/*.c)
 
-# User programs (C programs compiled to flat binary)
+# User programs (C programs compiled to ELF)
 USER_C_SOURCES = $(wildcard $(SRC_DIR)/user/*.c)
-USER_PROGRAMS = $(patsubst $(SRC_DIR)/user/%.c,$(BUILD_DIR)/user/%.bin,$(USER_C_SOURCES))
+USER_PROGRAMS = $(patsubst $(SRC_DIR)/user/%.c,$(BUILD_DIR)/user/%,$(USER_C_SOURCES))
 
 # Object files
 ASM_OBJECTS = $(patsubst $(SRC_DIR)/%.asm,$(BUILD_DIR)/%.o,$(ASM_SOURCES))
@@ -88,7 +88,7 @@ $(ISO): $(KERNEL) grub.cfg $(USER_PROGRAMS)
 	@mkdir -p $(ISO_DIR)/programs
 	cp $(KERNEL) $(ISO_DIR)/boot/kernel.bin
 	cp grub.cfg $(ISO_DIR)/boot/grub/grub.cfg
-	-cp $(BUILD_DIR)/user/*.bin $(ISO_DIR)/programs/ 2>/dev/null || true
+	-cp $(BUILD_DIR)/user/hello $(ISO_DIR)/programs/ 2>/dev/null || true
 	grub-mkrescue -o $@ $(ISO_DIR)
 	@echo "ISO built: $@"
 
@@ -98,7 +98,7 @@ USER_CFLAGS = -m32 -ffreestanding -fno-stack-protector -fno-pic -fno-pie \
               -nostdlib -nostdinc -ffunction-sections -fdata-sections \
               -Wall -Wextra -Os -I$(SRC_DIR)/user
 
-$(BUILD_DIR)/user/%.bin: $(SRC_DIR)/user/%.c $(SRC_DIR)/user/user.h $(SRC_DIR)/user/user.ld
+$(BUILD_DIR)/user/%: $(SRC_DIR)/user/%.c $(SRC_DIR)/user/user.h $(SRC_DIR)/user/user.ld
 	@mkdir -p $(dir $@)
 	$(CC) $(USER_CFLAGS) -c $< -o $(BUILD_DIR)/user/$*.o
 	$(LD) -m elf_i386 -T $(SRC_DIR)/user/user.ld --gc-sections -o $@ $(BUILD_DIR)/user/$*.o

@@ -3,7 +3,7 @@
  * Links userspace programs as flat binaries
  */
 
-OUTPUT_FORMAT(binary)
+OUTPUT_FORMAT(elf32-i386)
 ENTRY(_start)
 
 SECTIONS

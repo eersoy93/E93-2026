@@ -112,13 +112,13 @@ void kernel_main(unsigned int magic, unsigned int *mboot_info) {
     vga_set_color(VGA_COLOR_NORMAL, VGA_COLOR_BLACK);
 
     program_t hello;
-    /* Try to load hello.bin from the CD-ROM filesystem */
+    /* Try to load hello from the CD-ROM filesystem */
     /* ISO9660 uses uppercase filenames by default */
-    if (loader_load("/programs/hello.bin", &hello) == 0) {
+    if (loader_load("/programs/hello", &hello) == 0) {
         loader_exec(&hello);
     } else {
         vga_set_color(VGA_COLOR_ERROR, VGA_COLOR_BLACK);
-        vga_print("Failed to load /programs/hello.bin!\n");
+        vga_print("Failed to load /programs/hello!\n");
     }
 
     vga_set_color(VGA_COLOR_INFO, VGA_COLOR_BLACK);
