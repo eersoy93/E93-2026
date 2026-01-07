@@ -34,14 +34,9 @@ make iso    # or: make -f Makefile.gcc iso
 
 ## Running
 
-### Direct Kernel Boot (QEMU)
+### Boot from ISO (via QEMU)
 ```bash
-make run    # or: make -f Makefile.gcc run
-```
-
-### Boot from ISO (GRUB2)
-```bash
-make run-iso    # or: make -f Makefile.gcc run-iso
+make run    # or: make -f Makefile.gcc run-iso
 ```
 
 ## Copyright and License

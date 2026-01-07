@@ -85,14 +85,9 @@ $(ISO): $(KERNEL) grub.cfg
 	grub-mkrescue -o $@ $(ISO_DIR)
 	@echo "ISO built: $@"
 
-# Run in QEMU
-.PHONY: run
-run: $(KERNEL)
-	qemu-system-i386 -kernel $(KERNEL) -display gtk &
-
 # Run ISO in QEMU
-.PHONY: run-iso
-run-iso: $(ISO)
+.PHONY: run
+run: $(ISO)
 	qemu-system-i386 -cdrom $(ISO) -display gtk &
 
 # Clean build files
