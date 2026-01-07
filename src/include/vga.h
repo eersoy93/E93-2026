@@ -37,11 +37,21 @@ enum vga_color {
 };
 
 /* Predefined color schemes */
-enum vga_color VGA_COLOR_ERROR = VGA_COLOR_LIGHT_RED;
-enum vga_color VGA_COLOR_INFO = VGA_COLOR_LIGHT_CYAN;
-enum vga_color VGA_COLOR_NORMAL = VGA_COLOR_LIGHT_GREY;
-enum vga_color VGA_COLOR_SUCCESS = VGA_COLOR_LIGHT_GREEN;
-enum vga_color VGA_COLOR_WARNING = VGA_COLOR_YELLOW;
+#define VGA_COLOR_ERROR   VGA_COLOR_LIGHT_RED
+#define VGA_COLOR_INFO    VGA_COLOR_LIGHT_CYAN
+#define VGA_COLOR_NORMAL  VGA_COLOR_LIGHT_GREY
+#define VGA_COLOR_SUCCESS VGA_COLOR_LIGHT_GREEN
+#define VGA_COLOR_WARNING VGA_COLOR_YELLOW
+
+/* VGA I/O ports */
+#define VGA_CTRL_REGISTER 0x3D4
+#define VGA_DATA_REGISTER 0x3D5
+
+/* VGA cursor registers */
+#define VGA_CURSOR_START  0x0A
+#define VGA_CURSOR_END    0x0B
+#define VGA_CURSOR_HIGH   0x0E
+#define VGA_CURSOR_LOW    0x0F
 
 /* Function declarations */
 void vga_init(void);
@@ -54,5 +64,10 @@ void vga_print_dec(uint32_t num);
 void vga_set_cursor(size_t row, size_t col);
 size_t vga_get_row(void);
 size_t vga_get_col(void);
+
+/* Cursor control */
+void vga_enable_cursor(uint8_t cursor_start, uint8_t cursor_end);
+void vga_disable_cursor(void);
+void vga_update_cursor(void);
 
 #endif /* VGA_H */

@@ -5,6 +5,17 @@
 
 #include "vga.h"
 
+/* I/O port access */
+static inline void outb(uint16_t port, uint8_t val) {
+    __asm__ volatile ("outb %0, %1" : : "a"(val), "Nd"(port));
+}
+
+static inline uint8_t inb(uint16_t port) {
+    uint8_t ret;
+    __asm__ volatile ("inb %1, %0" : "=a"(ret) : "Nd"(port));
+    return ret;
+}
+
 /* VGA text buffer address */
 static uint16_t *vga_buffer = (uint16_t *)VGA_MEMORY;
 
@@ -36,6 +47,8 @@ void vga_init(void) {
     vga_row = 0;
     vga_col = 0;
     vga_color = vga_make_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
+    vga_enable_cursor(14, 15);  /* Enable cursor with default scanlines */
+    vga_update_cursor();
 }
 
 /**
@@ -57,6 +70,7 @@ void vga_clear(void) {
     }
     vga_row = 0;
     vga_col = 0;
+    vga_update_cursor();
 }
 
 /**
@@ -112,6 +126,9 @@ void vga_putchar(char c) {
     if (vga_row >= VGA_HEIGHT) {
         vga_scroll();
     }
+
+    /* Update hardware cursor position */
+    vga_update_cursor();
 }
 
 /**
@@ -169,6 +186,7 @@ void vga_set_cursor(size_t row, size_t col) {
     if (row < VGA_HEIGHT && col < VGA_WIDTH) {
         vga_row = row;
         vga_col = col;
+        vga_update_cursor();
     }
 }
 
@@ -184,4 +202,38 @@ size_t vga_get_row(void) {
  */
 size_t vga_get_col(void) {
     return vga_col;
+}
+
+/**
+ * Enable the hardware cursor
+ * @param cursor_start: Scanline where cursor starts (0-15)
+ * @param cursor_end: Scanline where cursor ends (0-15)
+ */
+void vga_enable_cursor(uint8_t cursor_start, uint8_t cursor_end) {
+    outb(VGA_CTRL_REGISTER, VGA_CURSOR_START);
+    outb(VGA_DATA_REGISTER, (inb(VGA_DATA_REGISTER) & 0xC0) | cursor_start);
+
+    outb(VGA_CTRL_REGISTER, VGA_CURSOR_END);
+    outb(VGA_DATA_REGISTER, (inb(VGA_DATA_REGISTER) & 0xE0) | cursor_end);
+}
+
+/**
+ * Disable the hardware cursor
+ */
+void vga_disable_cursor(void) {
+    outb(VGA_CTRL_REGISTER, VGA_CURSOR_START);
+    outb(VGA_DATA_REGISTER, 0x20);  /* Bit 5 set = cursor disabled */
+}
+
+/**
+ * Update the hardware cursor position to match the software cursor
+ */
+void vga_update_cursor(void) {
+    uint16_t pos = vga_row * VGA_WIDTH + vga_col;
+
+    outb(VGA_CTRL_REGISTER, VGA_CURSOR_LOW);
+    outb(VGA_DATA_REGISTER, (uint8_t)(pos & 0xFF));
+
+    outb(VGA_CTRL_REGISTER, VGA_CURSOR_HIGH);
+    outb(VGA_DATA_REGISTER, (uint8_t)((pos >> 8) & 0xFF));
 }
