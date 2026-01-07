@@ -26,6 +26,31 @@ typedef int int32_t;
 #define SYS_EXEC    8
 #define SYS_READDIR 9
 #define SYS_CLEAR   10
+#define SYS_SETCOLOR 11
+
+/* VGA color palette for userspace */
+#define COLOR_BLACK         0
+#define COLOR_BLUE          1
+#define COLOR_GREEN         2
+#define COLOR_CYAN          3
+#define COLOR_RED           4
+#define COLOR_MAGENTA       5
+#define COLOR_BROWN         6
+#define COLOR_LIGHT_GREY    7
+#define COLOR_DARK_GREY     8
+#define COLOR_LIGHT_BLUE    9
+#define COLOR_LIGHT_GREEN   10
+#define COLOR_LIGHT_CYAN    11
+#define COLOR_LIGHT_RED     12
+#define COLOR_LIGHT_MAGENTA 13
+#define COLOR_YELLOW        14
+#define COLOR_WHITE         15
+
+#define COLOR_ERROR   COLOR_LIGHT_RED
+#define COLOR_INFO    COLOR_LIGHT_CYAN
+#define COLOR_NORMAL  COLOR_LIGHT_GREY
+#define COLOR_SUCCESS COLOR_LIGHT_GREEN
+#define COLOR_WARNING COLOR_YELLOW
 
 /* File descriptors */
 #define STDIN   0
@@ -135,6 +160,28 @@ static inline int readdir(const char *path, int index, char *buf) {
  */
 static inline void clear(void) {
     syscall(SYS_CLEAR, 0, 0, 0);
+}
+
+/**
+ * Set text color
+ * @param fg: Foreground color (0-15, use COLOR_* constants)
+ * @param bg: Background color (0-15, use COLOR_* constants)
+ */
+static inline void setcolor(int fg, int bg) {
+    syscall(SYS_SETCOLOR, fg, bg, 0);
+}
+
+/**
+ * Print a string with color
+ * @param str: String to print
+ * @param fg: Foreground color
+ * @param bg: Background color
+ */
+static inline int print_color(const char *str, int fg, int bg) {
+    setcolor(fg, bg);
+    int ret = print(str);
+    setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);  /* Reset to default */
+    return ret;
 }
 
 /**

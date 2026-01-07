@@ -26,6 +26,7 @@ static int sys_getchar(uint32_t unused1, uint32_t unused2, uint32_t unused3);
 static int sys_exec(uint32_t path, uint32_t unused1, uint32_t unused2);
 static int sys_readdir(uint32_t path, uint32_t index, uint32_t buf);
 static int sys_clear(uint32_t unused1, uint32_t unused2, uint32_t unused3);
+static int sys_setcolor(uint32_t fg, uint32_t bg, uint32_t unused);
 
 /* System call table */
 static syscall_fn syscall_table[NUM_SYSCALLS] = {
@@ -40,6 +41,7 @@ static syscall_fn syscall_table[NUM_SYSCALLS] = {
     [SYS_EXEC]    = sys_exec,
     [SYS_READDIR] = sys_readdir,
     [SYS_CLEAR]   = sys_clear,
+    [SYS_SETCOLOR] = sys_setcolor,
 };
 
 /**
@@ -186,6 +188,22 @@ static int sys_clear(uint32_t unused1, uint32_t unused2, uint32_t unused3) {
     (void)unused3;
     
     vga_clear();
+    return 0;
+}
+
+/**
+ * SYS_SETCOLOR - Set text color
+ * @param fg: Foreground color (0-15)
+ * @param bg: Background color (0-15)
+ */
+static int sys_setcolor(uint32_t fg, uint32_t bg, uint32_t unused) {
+    (void)unused;
+    
+    /* Clamp colors to valid range */
+    if (fg > 15) fg = 15;
+    if (bg > 15) bg = 15;
+    
+    vga_set_color((enum vga_color)fg, (enum vga_color)bg);
     return 0;
 }
 

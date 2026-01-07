@@ -30,7 +30,11 @@ static char cmd_buf[CMD_MAX_LEN];
  * Print shell prompt
  */
 static void print_prompt(void) {
-    print("E93-2026> ");
+    setcolor(COLOR_LIGHT_GREEN, COLOR_BLACK);
+    print("E93-2026");
+    setcolor(COLOR_WHITE, COLOR_BLACK);
+    print("> ");
+    setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
 }
 
 /**
@@ -98,16 +102,37 @@ static void to_lower(char *s) {
  */
 static void cmd_help(void) {
     print("\n");
+    setcolor(COLOR_LIGHT_CYAN, COLOR_BLACK);
     print("E93-2026 Shell Commands:\n");
     print("------------------------\n");
-    print("  help          - Show this help message\n");
-    print("  ls [dir]      - List directory contents\n");
-    print("  clear         - Clear the screen\n");
-    print("  echo <text>   - Print text to screen\n");
-    print("  beep          - Play a beep sound\n");
-    print("  exit          - Exit shell and halt system\n");
+    setcolor(COLOR_YELLOW, COLOR_BLACK);
+    print("  help          ");
+    setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
+    print("- Show this help message\n");
+    setcolor(COLOR_YELLOW, COLOR_BLACK);
+    print("  ls [dir]      ");
+    setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
+    print("- List directory contents\n");
+    setcolor(COLOR_YELLOW, COLOR_BLACK);
+    print("  clear         ");
+    setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
+    print("- Clear the screen\n");
+    setcolor(COLOR_YELLOW, COLOR_BLACK);
+    print("  echo <text>   ");
+    setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
+    print("- Print text to screen\n");
+    setcolor(COLOR_YELLOW, COLOR_BLACK);
+    print("  beep          ");
+    setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
+    print("- Play a beep sound\n");
+    setcolor(COLOR_YELLOW, COLOR_BLACK);
+    print("  exit          ");
+    setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
+    print("- Exit shell and halt system\n");
     print("\n");
+    setcolor(COLOR_DARK_GREY, COLOR_BLACK);
     print("Run programs from /programs/ by name (e.g., 'hello')\n");
+    setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
     print("\n");
 }
 
@@ -123,9 +148,13 @@ static void cmd_ls(const char *path) {
         path = cwd;
     }
     
+    setcolor(COLOR_LIGHT_CYAN, COLOR_BLACK);
     print("Contents of ");
+    setcolor(COLOR_WHITE, COLOR_BLACK);
     print(path);
+    setcolor(COLOR_LIGHT_CYAN, COLOR_BLACK);
     print(":\n");
+    setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
     
     while (1) {
         int ret = readdir(path, index, entry);
@@ -134,7 +163,9 @@ static void cmd_ls(const char *path) {
         /* Skip . and .. */
         if (strcmp(entry, ".") != 0 && strcmp(entry, "..") != 0) {
             print("  ");
+            setcolor(COLOR_LIGHT_GREEN, COLOR_BLACK);
             print(entry);
+            setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
             print("\n");
             count++;
         }
@@ -142,11 +173,15 @@ static void cmd_ls(const char *path) {
     }
     
     if (count == 0) {
+        setcolor(COLOR_DARK_GREY, COLOR_BLACK);
         print("  (empty)\n");
+        setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
     }
     
+    setcolor(COLOR_DARK_GREY, COLOR_BLACK);
     print_num(count);
     print(" file(s)\n");
+    setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
 }
 
 /**
@@ -233,8 +268,11 @@ static void process_command(char *line) {
     else {
         /* Try to run as external program */
         if (try_exec(cmd) < 0) {
+            setcolor(COLOR_LIGHT_RED, COLOR_BLACK);
             print("Unknown command: ");
+            setcolor(COLOR_WHITE, COLOR_BLACK);
             print(cmd);
+            setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
             print("\nType 'help' for available commands.\n");
         }
     }
@@ -247,15 +285,20 @@ void _start(void) {
     /* Print welcome shell banner */
     clear();
     print("\n");
+    setcolor(COLOR_LIGHT_CYAN, COLOR_BLACK);
     print("  ______  ___  _____       ___   ___ ___   __\n");
     print(" |  ____|/ _ \\|___ /      |__ \\ / _ \\__ \\ / /\n");
     print(" | |__  | (_) | |_ \\ ______  ) | | | | ) / /_\n");
     print(" |  __| \\__, |___) |______|/ /| | | |/ / '_ \\\n");
     print(" | |____  / /|__ /       / /_| |_| / /| (_) |\n");
     print(" |______|/_/ |___/      |____|\\___/____\\___/\n");
+    setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
     print("\n");
+    setcolor(COLOR_WHITE, COLOR_BLACK);
     print("Welcome to E93-2026 Shell!\n");
+    setcolor(COLOR_DARK_GREY, COLOR_BLACK);
     print("Type 'help' for available commands.\n\n");
+    setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
     
     /* Main shell loop */
     while (1) {

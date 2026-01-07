@@ -20,8 +20,9 @@
 #define SYS_EXEC        8   /* Execute program */
 #define SYS_READDIR     9   /* Read directory entry */
 #define SYS_CLEAR       10  /* Clear screen */
-#define SYS_CHDIR       11  /* Change directory (reserved) */
-#define SYS_GETCWD      12  /* Get current directory (reserved) */
+#define SYS_SETCOLOR    11  /* Set text color */
+#define SYS_CHDIR       12  /* Change directory (reserved) */
+#define SYS_GETCWD      13  /* Get current directory (reserved) */
 
 /* System call interrupt number */
 #define SYSCALL_INT     0x80
