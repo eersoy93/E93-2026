@@ -4,6 +4,7 @@
  */
 
 #include "kernel.h"
+#include "string.h"
 #include "vga.h"
 
 /* Multiboot magic number */

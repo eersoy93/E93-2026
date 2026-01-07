@@ -21,16 +21,6 @@ void kernel_main(unsigned int magic, unsigned int *mboot_info);
 #define UNUSED(x) (void)(x)
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
-/* Memory operations */
-void *memset(void *dest, int val, size_t count);
-void *memcpy(void *dest, const void *src, size_t count);
-int memcmp(const void *s1, const void *s2, size_t n);
-
-/* String operations */
-size_t strlen(const char *str);
-int strcmp(const char *s1, const char *s2);
-char *strcpy(char *dest, const char *src);
-
 /* Port I/O */
 static inline void outb(uint16_t port, uint8_t val) {
     __asm__ volatile("outb %0, %1" : : "a"(val), "Nd"(port));
