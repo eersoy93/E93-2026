@@ -4,7 +4,10 @@
  */
 
 #include "kernel.h"
+#include "fs.h"
+#include "ide.h"
 #include "idt.h"
+#include "iso9660.h"
 #include "pit.h"
 #include "speaker.h"
 #include "string.h"
@@ -44,6 +47,45 @@ void kernel_main(unsigned int magic, unsigned int *mboot_info) {
     /* Initialize PC speaker */
     vga_print("Initializing PC Speaker...\n");
     speaker_init();
+
+    /* Initialize IDE controller */
+    vga_print("Initializing IDE controller...\n");
+    ide_init();
+
+    /* Print detected drives */
+    if (ide_get_drive_count() > 0) {
+        vga_print("Detected IDE drives:\n");
+        ide_print_info();
+    } else {
+        vga_print("No IDE drives detected!\n");
+    }
+
+    /* Initialize Virtual Filesystem */
+    vga_print("Initializing VFS...\n");
+    fs_init();
+
+    /* Initialize ISO9660 filesystem driver */
+    vga_print("Initializing ISO9660...\n");
+    iso9660_init();
+
+    /* Try to mount CD-ROM filesystems from all ATAPI drives */
+    vga_print("Mounting CD-ROM filesystems...\n");
+
+    fs_node_t *cdrom_roots[4] = {NULL};
+    int mounted_count = 0;
+    
+    for (int i = 0; i < 4; i++) {
+        ide_device_t *dev = ide_get_device(i);
+        if (dev && dev->type == IDE_TYPE_ATAPI) {
+            cdrom_roots[i] = fs_mount(i, "iso9660");
+            if (cdrom_roots[i]) {
+                vga_print("Mounted ISO9660 filesystem from drive ");
+                vga_putchar('0' + i);
+                vga_print("\n");
+                mounted_count++;
+            }
+        }
+    }
 
     /* Print welcome message */
     vga_set_color(VGA_COLOR_SUCCESS, VGA_COLOR_BLACK);
