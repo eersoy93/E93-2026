@@ -115,7 +115,7 @@ run: $(ISO)
 .PHONY: clean
 clean:
 	rm -rf $(BUILD_DIR)
-	@echo "Build directory cleaned"
+	@echo "Build directory cleaned!"
 
 # Install dependencies (Ubuntu/Debian)
 .PHONY: deps
@@ -149,4 +149,4 @@ help:
 	@echo "  help       - Show this help message"
 	@echo ""
 	@echo "User Programs:"
-	@echo "  User programs in src/user/*.asm are built and included in the ISO"
+	@echo "  User programs in src/user/*.c are built and included in the ISO"
