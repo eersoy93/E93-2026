@@ -142,4 +142,7 @@ extern void irq13(void);
 extern void irq14(void);
 extern void irq15(void);
 
+/* Syscall interrupt stub */
+extern void isr128(void);
+
 #endif /* IDT_H */

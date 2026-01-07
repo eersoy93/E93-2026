@@ -3,14 +3,16 @@
  * Main kernel entry point and core functionality
  */
 
-#include "kernel.h"
 #include "fs.h"
 #include "ide.h"
 #include "idt.h"
 #include "iso9660.h"
+#include "kernel.h"
+#include "loader.h"
 #include "pit.h"
 #include "speaker.h"
 #include "string.h"
+#include "syscall.h"
 #include "vga.h"
 
 /* Multiboot magic number */
@@ -43,6 +45,14 @@ void kernel_main(unsigned int magic, unsigned int *mboot_info) {
     /* Enable interrupts */
     vga_print("Enabling interrupts...\n");
     __asm__ volatile ("sti");
+
+    /* Initialize system call interface */
+    vga_print("Initializing syscall interface...\n");
+    syscall_init();
+
+    /* Initialize program loader */
+    vga_print("Initializing program loader...\n");
+    loader_init();
 
     /* Initialize PC speaker */
     vga_print("Initializing PC Speaker...\n");
@@ -81,6 +91,7 @@ void kernel_main(unsigned int magic, unsigned int *mboot_info) {
             if (cdrom_roots[i]) {
                 vga_print("Mounted ISO9660 filesystem from drive ");
                 vga_putchar('0' + i);
+                vga_putchar('.');
                 vga_print("\n");
                 mounted_count++;
             }
@@ -93,6 +104,26 @@ void kernel_main(unsigned int magic, unsigned int *mboot_info) {
 
     /* Play startup beep */
     speaker_beep(NOTE_SYSTEM, 100);
+
+    /* Run the Hello World program from filesystem */
+    vga_print("\n");
+    vga_set_color(VGA_COLOR_INFO, VGA_COLOR_BLACK);
+    vga_print("=== Running Userspace Application ===\n");
+    vga_set_color(VGA_COLOR_NORMAL, VGA_COLOR_BLACK);
+
+    program_t hello;
+    /* Try to load hello.bin from the CD-ROM filesystem */
+    /* ISO9660 uses uppercase filenames by default */
+    if (loader_load("/programs/hello.bin", &hello) == 0) {
+        loader_exec(&hello);
+    } else {
+        vga_set_color(VGA_COLOR_ERROR, VGA_COLOR_BLACK);
+        vga_print("Failed to load /programs/hello.bin!\n");
+    }
+
+    vga_set_color(VGA_COLOR_INFO, VGA_COLOR_BLACK);
+    vga_print("=== Userspace Application Finished ===\n");
+    vga_set_color(VGA_COLOR_NORMAL, VGA_COLOR_BLACK);
 
     /* Halt the CPU */
     while (1) {

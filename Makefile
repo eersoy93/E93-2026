@@ -22,6 +22,10 @@ C_SOURCES = $(wildcard $(SRC_DIR)/kernel/*.c) \
             $(wildcard $(SRC_DIR)/drivers/*.c) \
             $(wildcard $(SRC_DIR)/lib/*.c)
 
+# User programs (C programs compiled to flat binary)
+USER_C_SOURCES = $(wildcard $(SRC_DIR)/user/*.c)
+USER_PROGRAMS = $(patsubst $(SRC_DIR)/user/%.c,$(BUILD_DIR)/user/%.bin,$(USER_C_SOURCES))
+
 # Object files
 ASM_OBJECTS = $(patsubst $(SRC_DIR)/%.asm,$(BUILD_DIR)/%.o,$(ASM_SOURCES))
 C_OBJECTS = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(C_SOURCES))
@@ -79,12 +83,26 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 .PHONY: iso
 iso: $(ISO)
 
-$(ISO): $(KERNEL) grub.cfg
+$(ISO): $(KERNEL) grub.cfg $(USER_PROGRAMS)
 	@mkdir -p $(ISO_DIR)/boot/grub
+	@mkdir -p $(ISO_DIR)/programs
 	cp $(KERNEL) $(ISO_DIR)/boot/kernel.bin
 	cp grub.cfg $(ISO_DIR)/boot/grub/grub.cfg
+	-cp $(BUILD_DIR)/user/*.bin $(ISO_DIR)/programs/ 2>/dev/null || true
 	grub-mkrescue -o $@ $(ISO_DIR)
 	@echo "ISO built: $@"
+
+# Build userspace programs (C to flat binary)
+# Compiler flags for userspace (no kernel includes)
+USER_CFLAGS = -m32 -ffreestanding -fno-stack-protector -fno-pic -fno-pie \
+              -nostdlib -nostdinc -ffunction-sections -fdata-sections \
+              -Wall -Wextra -Os -I$(SRC_DIR)/user
+
+$(BUILD_DIR)/user/%.bin: $(SRC_DIR)/user/%.c $(SRC_DIR)/user/user.h $(SRC_DIR)/user/user.ld
+	@mkdir -p $(dir $@)
+	$(CC) $(USER_CFLAGS) -c $< -o $(BUILD_DIR)/user/$*.o
+	$(LD) -m elf_i386 -T $(SRC_DIR)/user/user.ld --gc-sections -o $@ $(BUILD_DIR)/user/$*.o
+	@echo "User program built: $@ ($$(stat -c%s $@) bytes)"
 
 # Run ISO in QEMU
 .PHONY: run
@@ -127,3 +145,6 @@ help:
 	@echo "  deps       - Install dependencies (Ubuntu/Debian)"
 	@echo "  check-tools- Verify required tools are installed"
 	@echo "  help       - Show this help message"
+	@echo ""
+	@echo "User Programs:"
+	@echo "  User programs in src/user/*.asm are built and included in the ISO"

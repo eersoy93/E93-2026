@@ -141,3 +141,37 @@ IRQ 12, 44          ; Mouse
 IRQ 13, 45          ; FPU
 IRQ 14, 46          ; Primary ATA
 IRQ 15, 47          ; Secondary ATA
+
+; Syscall interrupt (INT 0x80)
+extern syscall_isr_handler
+
+; Syscall stub - different handling to preserve return value in eax
+global isr128
+isr128:
+    push dword 0        ; Push dummy error code
+    push dword 128      ; Push interrupt number
+
+    pusha               ; Push all general purpose registers
+
+    mov ax, ds
+    push eax            ; Save data segment
+
+    mov ax, 0x10        ; Load kernel data segment
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+
+    push esp            ; Push pointer to interrupt frame
+    call syscall_isr_handler
+    add esp, 4          ; Clean up pushed parameter
+
+    pop eax             ; Restore data segment
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+
+    popa                ; Restore general purpose registers (including eax with return value)
+    add esp, 8          ; Clean up error code and ISR number
+    iret                ; Return from interrupt

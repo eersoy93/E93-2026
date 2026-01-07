@@ -106,8 +106,9 @@ void pit_sleep(uint32_t ms) {
     target_ticks = pit_ticks + (ms * pit_frequency) / 1000;
 
     /* Wait for ticks to reach target */
+    /* Enable interrupts so timer can fire */
     while (pit_ticks < target_ticks) {
-        __asm__ volatile ("hlt");  /* Wait for next interrupt */
+        __asm__ volatile ("sti; hlt");  /* Enable interrupts and wait */
     }
 }
 
