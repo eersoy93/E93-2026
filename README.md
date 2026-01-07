@@ -8,7 +8,7 @@ A minimal 32-bit operating system kernel template that boots via GRUB2 (Multiboo
 ## Prerequisites
 
 - nasm
-- qemu (x86 system)
+- qemu (x86 system, pa audio system required for beeps)
 - GRUB2
 - xorriso
 - mtools
