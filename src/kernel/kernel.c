@@ -40,5 +40,5 @@ void kernel_main(unsigned int magic, unsigned int *mboot_info) {
         __asm__ volatile("hlt");
     }
 
-    (void) mboot_info; /* Suppress unused variable warning */
+    UNUSED(mboot_info); /* Suppress unused variable warning */
 }
