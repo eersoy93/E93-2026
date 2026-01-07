@@ -16,7 +16,8 @@ KERNEL = $(BUILD_DIR)/kernel.bin
 ISO = $(BUILD_DIR)/os.iso
 
 # Source files
-ASM_SOURCES = $(SRC_DIR)/boot/boot.asm
+ASM_SOURCES = $(SRC_DIR)/boot/boot.asm \
+              $(wildcard $(SRC_DIR)/kernel/*.asm)
 C_SOURCES = $(wildcard $(SRC_DIR)/kernel/*.c) \
             $(wildcard $(SRC_DIR)/drivers/*.c) \
             $(wildcard $(SRC_DIR)/lib/*.c)
@@ -88,7 +89,7 @@ $(ISO): $(KERNEL) grub.cfg
 # Run ISO in QEMU
 .PHONY: run
 run: $(ISO)
-	qemu-system-i386 -cdrom $(ISO) -display gtk &
+	qemu-system-i386 -cdrom $(ISO) -display gtk -audiodev pa,id=audio0 -machine pcspk-audiodev=audio0 &
 
 # Clean build files
 .PHONY: clean
