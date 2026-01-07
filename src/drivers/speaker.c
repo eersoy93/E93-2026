@@ -20,7 +20,7 @@ void speaker_init(void) {
  * @param frequency: Frequency in Hz (e.g., 440 for A4)
  * @param duration_ms: Duration in milliseconds (0 = play indefinitely)
  */
-void speaker_play(uint32_t frequency, uint32_t duration_ms) {
+void speaker_beep(uint32_t frequency, uint32_t duration_ms) {
     uint32_t divisor;
     uint8_t tmp;
 

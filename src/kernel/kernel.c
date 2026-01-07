@@ -50,7 +50,7 @@ void kernel_main(unsigned int magic, unsigned int *mboot_info) {
     vga_print("Welcome to E93-2026!\n");
 
     /* Play startup beep */
-    speaker_play(1000, 100);
+    speaker_beep(1000, 100);
 
     /* Halt the CPU */
     while (1) {

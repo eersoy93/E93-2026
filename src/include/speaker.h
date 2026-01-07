@@ -30,7 +30,7 @@
 
 /* Function declarations */
 void speaker_init(void);
-void speaker_play(uint32_t frequency, uint32_t duration_ms);
+void speaker_beep(uint32_t frequency, uint32_t duration_ms);
 void speaker_stop(void);
 
 #endif /* SPEAKER_H */
