@@ -28,6 +28,8 @@
 #define NOTE_B4   494
 #define NOTE_C5   523
 
+#define NOTE_SYSTEM 1000
+
 /* Function declarations */
 void speaker_init(void);
 void speaker_beep(uint32_t frequency, uint32_t duration_ms);
