@@ -36,6 +36,13 @@ enum vga_color {
     VGA_COLOR_WHITE         = 15,
 };
 
+/* Predefined color schemes */
+enum vga_color VGA_COLOR_ERROR = VGA_COLOR_LIGHT_RED;
+enum vga_color VGA_COLOR_INFO = VGA_COLOR_LIGHT_CYAN;
+enum vga_color VGA_COLOR_NORMAL = VGA_COLOR_LIGHT_GREY;
+enum vga_color VGA_COLOR_SUCCESS = VGA_COLOR_LIGHT_GREEN;
+enum vga_color VGA_COLOR_WARNING = VGA_COLOR_YELLOW;
+
 /* Function declarations */
 void vga_init(void);
 void vga_clear(void);

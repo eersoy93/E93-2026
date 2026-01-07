@@ -23,16 +23,16 @@ void kernel_main(unsigned int magic, unsigned int *mboot_info) {
 
     /* Check multiboot magic number */
     if (magic != MULTIBOOT_MAGIC) {
-        vga_set_color(VGA_COLOR_RED, VGA_COLOR_BLACK);
+        vga_set_color(VGA_COLOR_ERROR, VGA_COLOR_BLACK);
         vga_print("Error: Invalid Multiboot magic number!\n");
         return;
     }
 
     /* Print welcome message */
-    vga_set_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK);
+    vga_set_color(VGA_COLOR_NORMAL, VGA_COLOR_BLACK);
     vga_print("Loading E93-2026...\n");
 
-    vga_set_color(VGA_COLOR_WHITE, VGA_COLOR_BLACK);
+    vga_set_color(VGA_COLOR_SUCCESS, VGA_COLOR_BLACK);
     vga_print("Kernel loaded successfully!\n");
 
     /* Halt the CPU */
