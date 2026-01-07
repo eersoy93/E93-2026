@@ -32,9 +32,6 @@ void kernel_main(unsigned int magic, unsigned int *mboot_info) {
     vga_set_color(VGA_COLOR_NORMAL, VGA_COLOR_BLACK);
     vga_print("Loading E93-2026...\n");
 
-    vga_set_color(VGA_COLOR_SUCCESS, VGA_COLOR_BLACK);
-    vga_print("Kernel loaded successfully!\n");
-
     /* Halt the CPU */
     while (1) {
         __asm__ volatile("hlt");
