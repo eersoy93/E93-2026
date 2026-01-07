@@ -36,7 +36,7 @@ make iso    # or: make -f Makefile.gcc iso
 
 ### Boot from ISO (via QEMU)
 ```bash
-make run    # or: make -f Makefile.gcc run-iso
+make run    # or: make -f Makefile.gcc run
 ```
 
 ## Copyright and License
