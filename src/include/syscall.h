@@ -11,11 +11,17 @@
 /* System call numbers */
 #define SYS_EXIT        0   /* Exit program */
 #define SYS_WRITE       1   /* Write to screen */
-#define SYS_READ        2   /* Read (reserved) */
+#define SYS_READ        2   /* Read from keyboard */
 #define SYS_OPEN        3   /* Open file (reserved) */
 #define SYS_CLOSE       4   /* Close file (reserved) */
 #define SYS_SLEEP       5   /* Sleep for milliseconds */
 #define SYS_BEEP        6   /* PC speaker beep */
+#define SYS_GETCHAR     7   /* Get single character */
+#define SYS_EXEC        8   /* Execute program */
+#define SYS_READDIR     9   /* Read directory entry */
+#define SYS_CLEAR       10  /* Clear screen */
+#define SYS_CHDIR       11  /* Change directory (reserved) */
+#define SYS_GETCWD      12  /* Get current directory (reserved) */
 
 /* System call interrupt number */
 #define SYSCALL_INT     0x80

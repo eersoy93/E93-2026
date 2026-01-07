@@ -8,6 +8,7 @@
 #include "idt.h"
 #include "iso9660.h"
 #include "kernel.h"
+#include "keyboard.h"
 #include "loader.h"
 #include "pit.h"
 #include "speaker.h"
@@ -41,6 +42,10 @@ void kernel_main(unsigned int magic, unsigned int *mboot_info) {
     /* Initialize PIT timer (1000 Hz = 1ms resolution) */
     vga_print("Initializing PIT...\n");
     pit_init(1000);
+
+    /* Initialize keyboard driver */
+    vga_print("Initializing keyboard...\n");
+    keyboard_init();
 
     /* Enable interrupts */
     vga_print("Enabling interrupts...\n");
@@ -97,32 +102,31 @@ void kernel_main(unsigned int magic, unsigned int *mboot_info) {
             }
         }
     }
+    if (mounted_count == 0) {
+        vga_set_color(VGA_COLOR_ERROR, VGA_COLOR_BLACK);
+        vga_print("Error: No CD-ROM filesystems mounted!\n");
+        vga_print("Cannot continue without a filesystem!\n");
+        vga_print("System halted!\n");
+        asm volatile("hlt");
+    }
 
-    /* Print welcome message */
-    vga_set_color(VGA_COLOR_SUCCESS, VGA_COLOR_BLACK);
-    vga_print("Welcome to E93-2026!\n");
-
-    /* Play startup beep */
-    speaker_beep(NOTE_SYSTEM, 100);
-
-    /* Run the Hello World program from filesystem */
+    /* Run the shell from filesystem */
     vga_print("\n");
     vga_set_color(VGA_COLOR_INFO, VGA_COLOR_BLACK);
-    vga_print("=== Running Userspace Application ===\n");
+    vga_print("Starting shell...\n");
     vga_set_color(VGA_COLOR_NORMAL, VGA_COLOR_BLACK);
 
-    program_t hello;
-    /* Try to load hello from the CD-ROM filesystem */
-    /* ISO9660 uses uppercase filenames by default */
-    if (loader_load("/programs/hello", &hello) == 0) {
-        loader_exec(&hello);
+    program_t shell;
+    /* Try to load shell from the CD-ROM filesystem */
+    if (loader_load("/programs/shell", &shell) == 0) {
+        loader_exec(&shell);
     } else {
         vga_set_color(VGA_COLOR_ERROR, VGA_COLOR_BLACK);
-        vga_print("Failed to load /programs/hello!\n");
+        vga_print("Failed to load: /programs/shell\n");
     }
 
     vga_set_color(VGA_COLOR_INFO, VGA_COLOR_BLACK);
-    vga_print("=== Userspace Application Finished ===\n");
+    vga_print("=== System Halted ===\n");
     vga_set_color(VGA_COLOR_NORMAL, VGA_COLOR_BLACK);
 
     /* Halt the CPU */

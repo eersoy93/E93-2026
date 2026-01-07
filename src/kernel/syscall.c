@@ -3,7 +3,9 @@
  * Provides system call interface for userspace programs
  */
 
+#include "fs.h"
 #include "idt.h"
+#include "keyboard.h"
 #include "loader.h"
 #include "pit.h"
 #include "speaker.h"
@@ -17,18 +19,27 @@ typedef int (*syscall_fn)(uint32_t, uint32_t, uint32_t);
 /* Forward declarations */
 static int sys_exit(uint32_t code, uint32_t unused1, uint32_t unused2);
 static int sys_write(uint32_t fd, uint32_t buf, uint32_t len);
+static int sys_read(uint32_t fd, uint32_t buf, uint32_t len);
 static int sys_sleep(uint32_t ms, uint32_t unused1, uint32_t unused2);
 static int sys_beep(uint32_t freq, uint32_t duration, uint32_t unused);
+static int sys_getchar(uint32_t unused1, uint32_t unused2, uint32_t unused3);
+static int sys_exec(uint32_t path, uint32_t unused1, uint32_t unused2);
+static int sys_readdir(uint32_t path, uint32_t index, uint32_t buf);
+static int sys_clear(uint32_t unused1, uint32_t unused2, uint32_t unused3);
 
 /* System call table */
 static syscall_fn syscall_table[NUM_SYSCALLS] = {
-    [SYS_EXIT]  = sys_exit,
-    [SYS_WRITE] = sys_write,
-    [SYS_READ]  = NULL,     /* Reserved */
-    [SYS_OPEN]  = NULL,     /* Reserved */
-    [SYS_CLOSE] = NULL,     /* Reserved */
-    [SYS_SLEEP] = sys_sleep,
-    [SYS_BEEP]  = sys_beep,
+    [SYS_EXIT]    = sys_exit,
+    [SYS_WRITE]   = sys_write,
+    [SYS_READ]    = sys_read,
+    [SYS_OPEN]    = NULL,       /* Reserved */
+    [SYS_CLOSE]   = NULL,       /* Reserved */
+    [SYS_SLEEP]   = sys_sleep,
+    [SYS_BEEP]    = sys_beep,
+    [SYS_GETCHAR] = sys_getchar,
+    [SYS_EXEC]    = sys_exec,
+    [SYS_READDIR] = sys_readdir,
+    [SYS_CLEAR]   = sys_clear,
 };
 
 /**
@@ -82,6 +93,99 @@ static int sys_beep(uint32_t freq, uint32_t duration, uint32_t unused) {
     (void)unused;
     
     speaker_beep((uint16_t)freq, (uint32_t)duration);
+    return 0;
+}
+
+/**
+ * SYS_READ - Read from stdin (keyboard)
+ */
+static int sys_read(uint32_t fd, uint32_t buf, uint32_t len) {
+    if (fd != 0) {
+        return -1;  /* Only stdin supported */
+    }
+    
+    char *buffer = (char *)buf;
+    return keyboard_readline(buffer, (int)len);
+}
+
+/**
+ * SYS_GETCHAR - Get a single character from keyboard
+ */
+static int sys_getchar(uint32_t unused1, uint32_t unused2, uint32_t unused3) {
+    (void)unused1;
+    (void)unused2;
+    (void)unused3;
+    
+    return (int)keyboard_getchar();
+}
+
+/**
+ * SYS_EXEC - Execute a program
+ * Returns exit code on success, negative on error
+ * The executed program runs and returns when it calls exit()
+ */
+static int sys_exec(uint32_t path, uint32_t unused1, uint32_t unused2) {
+    (void)unused1;
+    (void)unused2;
+    
+    const char *prog_path = (const char *)path;
+    program_t prog;
+    
+    /* Save current program as parent before loading child */
+    program_t *current = loader_get_current();
+    if (current != NULL) {
+        loader_set_parent(current->name);
+    }
+    
+    if (loader_load(prog_path, &prog) != 0) {
+        return -1;
+    }
+    
+    /* Execute the program - this will NOT return! 
+     * When child exits, loader_exit will restart the parent */
+    loader_exec(&prog);
+    
+    /* Never reached - parent restarts from beginning */
+    return 0;
+}
+
+/**
+ * SYS_READDIR - Read a directory entry
+ * @param path: Directory path
+ * @param index: Entry index (0-based)
+ * @param buf: Buffer to store entry name (must be at least 256 bytes)
+ * @return: 1 if entry found, 0 if no more entries, -1 on error
+ */
+static int sys_readdir(uint32_t path, uint32_t index, uint32_t buf) {
+    const char *dir_path = (const char *)path;
+    char *entry_buf = (char *)buf;
+    
+    fs_node_t *dir = fs_namei(dir_path);
+    if (!dir || !(dir->flags & FS_DIRECTORY)) {
+        return -1;
+    }
+    
+    dirent_t *dirent = fs_readdir(dir, index);
+    if (!dirent) {
+        return 0;  /* No more entries */
+    }
+    
+    /* Copy entry name to buffer */
+    strncpy(entry_buf, dirent->name, 255);
+    entry_buf[255] = '\0';
+    
+    return 1;
+}
+
+/**
+ * SYS_CLEAR - Clear the screen
+ */
+static int sys_clear(uint32_t unused1, uint32_t unused2, uint32_t unused3) {
+    (void)unused1;
+    (void)unused2;
+    (void)unused3;
+    
+    vga_clear();
     return 0;
 }
 

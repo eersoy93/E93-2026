@@ -12,6 +12,10 @@ static program_t current_program;
 static int program_running = 0;
 static int program_exit_code = 0;
 
+/* Parent program path for returning after child exits */
+static char parent_path[64];
+static int has_parent = 0;
+
 /* Temporary buffer for reading ELF file */
 static uint8_t elf_buffer[PROGRAM_MAX_SIZE];
 
@@ -24,6 +28,8 @@ extern uint32_t __kernel_end;
 void loader_init(void) {
     program_running = 0;
     program_exit_code = 0;
+    has_parent = 0;
+    parent_path[0] = '\0';
     memset(&current_program, 0, sizeof(program_t));
 }
 
@@ -181,7 +187,7 @@ int loader_load(const char *path, program_t *prog) {
         vga_set_color(VGA_COLOR_ERROR, VGA_COLOR_BLACK);
         vga_print("Error: File not found: ");
         vga_print(path);
-        vga_print("!\n");
+        vga_print("\n");
         vga_set_color(VGA_COLOR_NORMAL, VGA_COLOR_BLACK);
         return -1;
     }
@@ -268,12 +274,10 @@ int loader_exec(program_t *prog) {
     program_running = 0;
     
     vga_set_color(VGA_COLOR_INFO, VGA_COLOR_BLACK);
-    vga_print("Program exited with code: ");
-    vga_print_dec((uint32_t)program_exit_code);
-    vga_print("\n");
+    vga_print("Program returned without exit\n");
     vga_set_color(VGA_COLOR_NORMAL, VGA_COLOR_BLACK);
     
-    return program_exit_code;
+    return 0;
 }
 
 /**
@@ -294,7 +298,7 @@ program_t *loader_get_current(void) {
 }
 
 /**
- * Signal program exit and halt the machine
+ * Signal program exit and restart parent if exists
  */
 void loader_exit(int exit_code) {
     program_exit_code = exit_code;
@@ -307,10 +311,33 @@ void loader_exit(int exit_code) {
     vga_print("\n");
     vga_set_color(VGA_COLOR_NORMAL, VGA_COLOR_BLACK);
     
-    /* Halt the machine */
+    /* If there's a parent program, reload and restart it */
+    if (has_parent && parent_path[0] != '\0') {
+        program_t parent;
+        has_parent = 0;  /* Clear before reloading to avoid infinite loop */
+        
+        if (loader_load(parent_path, &parent) == 0) {
+            parent_path[0] = '\0';
+            loader_exec(&parent);
+            /* If exec returns, fall through to halt */
+        }
+    }
+    
+    /* Fallback: halt the machine */
     vga_print("System halted!\n");
-    __asm__ volatile ("cli");  /* Disable interrupts */
+    __asm__ volatile ("cli");
     while (1) {
         __asm__ volatile ("hlt");
+    }
+}
+
+/**
+ * Set the parent program path (called before exec'ing a child)
+ */
+void loader_set_parent(const char *path) {
+    if (path) {
+        strncpy(parent_path, path, sizeof(parent_path) - 1);
+        parent_path[sizeof(parent_path) - 1] = '\0';
+        has_parent = 1;
     }
 }

@@ -132,4 +132,10 @@ program_t *loader_get_current(void);
  */
 void loader_exit(int exit_code);
 
+/**
+ * Set the parent program to restart after child exits
+ * @param path: Path to the parent program
+ */
+void loader_set_parent(const char *path);
+
 #endif /* LOADER_H */
