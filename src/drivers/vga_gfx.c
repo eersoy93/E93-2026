@@ -640,6 +640,12 @@ void vga_gfx_init_13h(void) {
     /* Set mode 13h */
     write_regs(mode13h_seq, mode13h_crtc, mode13h_gc, mode13h_attr, mode13h_misc);
     
+    /* Set up default 256-color grayscale palette */
+    for (int i = 0; i < 256; i++) {
+        uint8_t val = (uint8_t)((i * 63) / 255);
+        vga_set_palette((uint8_t)i, val, val, val);
+    }
+    
     gfx_mode_active = 1;
     current_mode = VGA_MODE_13H;
     
@@ -725,6 +731,12 @@ void vga_gfx_init_x(void) {
     /* Set mode X */
     write_regs(modeX_seq, modeX_crtc, modeX_gc, modeX_attr, modeX_misc);
     
+    /* Set up default 256-color grayscale palette */
+    for (int i = 0; i < 256; i++) {
+        uint8_t val = (uint8_t)((i * 63) / 255);
+        vga_set_palette((uint8_t)i, val, val, val);
+    }
+    
     gfx_mode_active = 1;
     current_mode = VGA_MODE_X;
     
@@ -792,4 +804,117 @@ void vga_set_palette(uint8_t index, uint8_t r, uint8_t g, uint8_t b) {
     outb(0x3C9, r & 0x3F);
     outb(0x3C9, g & 0x3F);
     outb(0x3C9, b & 0x3F);
+}
+
+/* ============================================================================
+ * VGA Mode Y (320x200, 256 colors) - Planar with unchained memory (4 pages)
+ * Same resolution as Mode 13h but uses planar memory like Mode X
+ * ============================================================================ */
+
+/* Mode Y uses Mode 13h base with unchained memory */
+static const uint8_t modeY_misc = 0x63;  /* Same as mode 13h */
+
+static const uint8_t modeY_seq[] = {
+    0x03, /* Reset */
+    0x01, /* Clock Mode */
+    0x0F, /* Plane Write - all planes */
+    0x00, /* Char Map */
+    0x06  /* Memory Mode - unchained (Chain-4 disabled) */
+};
+
+static const uint8_t modeY_crtc[] = {
+    0x5F, 0x4F, 0x50, 0x82, 0x54, 0x80, 0xBF, 0x1F,
+    0x00, 0x41, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x9C, 0x0E, 0x8F, 0x28, 0x00, 0x96, 0xB9, 0xE3,
+    0xFF
+};
+
+static const uint8_t modeY_gc[] = {
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x05, 0x0F,
+    0xFF
+};
+
+static const uint8_t modeY_attr[] = {
+    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+    0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
+    0x41, 0x00, 0x0F, 0x00, 0x00
+};
+
+/**
+ * Initialize VGA mode Y (320x200, 256 colors, planar)
+ */
+void vga_gfx_init_y(void) {
+    if (gfx_mode_active && current_mode == VGA_MODE_Y) return;
+    
+    /* Exit current graphics mode if active */
+    if (gfx_mode_active) {
+        vga_gfx_exit();
+    }
+    
+    /* Set mode Y */
+    write_regs(modeY_seq, modeY_crtc, modeY_gc, modeY_attr, modeY_misc);
+    
+    /* Set up default 256-color grayscale palette */
+    for (int i = 0; i < 256; i++) {
+        uint8_t val = (uint8_t)((i * 63) / 255);
+        vga_set_palette((uint8_t)i, val, val, val);
+    }
+    
+    gfx_mode_active = 1;
+    current_mode = VGA_MODE_Y;
+    
+    /* Clear screen to black */
+    vga_y_clear(0);
+}
+
+/**
+ * Set a pixel in mode Y (planar)
+ */
+void vga_y_set_pixel(int x, int y, uint8_t color) {
+    if (!gfx_mode_active || current_mode != VGA_MODE_Y) return;
+    if (x < 0 || x >= VGA_Y_WIDTH || y < 0 || y >= VGA_Y_HEIGHT) return;
+    
+    /* Calculate offset - each plane has width/4 bytes per row */
+    uint32_t offset = y * (VGA_Y_WIDTH / 4) + (x / 4);
+    uint8_t plane = x & 3;
+    
+    /* Select the plane to write to */
+    outb(VGA_SEQ_INDEX, VGA_SEQ_PLANE_WRITE);
+    outb(VGA_SEQ_DATA, 1 << plane);
+    
+    vga_mem[offset] = color;
+}
+
+/**
+ * Get a pixel in mode Y
+ */
+uint8_t vga_y_get_pixel(int x, int y) {
+    if (!gfx_mode_active || current_mode != VGA_MODE_Y) return 0;
+    if (x < 0 || x >= VGA_Y_WIDTH || y < 0 || y >= VGA_Y_HEIGHT) return 0;
+    
+    uint32_t offset = y * (VGA_Y_WIDTH / 4) + (x / 4);
+    uint8_t plane = x & 3;
+    
+    /* Select the plane to read from */
+    outb(VGA_GC_INDEX, VGA_GC_READ_MAP_SELECT);
+    outb(VGA_GC_DATA, plane);
+    
+    return vga_mem[offset];
+}
+
+/**
+ * Clear screen in mode Y
+ */
+void vga_y_clear(uint8_t color) {
+    if (!gfx_mode_active || current_mode != VGA_MODE_Y) return;
+    
+    /* Enable writing to all planes */
+    outb(VGA_SEQ_INDEX, VGA_SEQ_PLANE_WRITE);
+    outb(VGA_SEQ_DATA, 0x0F);
+    
+    /* Clear all video memory */
+    uint32_t size = (VGA_Y_WIDTH * VGA_Y_HEIGHT) / 4;
+    for (uint32_t i = 0; i < size; i++) {
+        vga_mem[i] = color;
+    }
 }

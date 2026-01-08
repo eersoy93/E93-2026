@@ -37,6 +37,7 @@ static int sys_vga_rect(uint32_t packed_xy, uint32_t packed_wh, uint32_t color_f
 static int sys_vga_circle(uint32_t packed_xy, uint32_t r, uint32_t color_fill);
 static int sys_vga_init_13h(uint32_t unused1, uint32_t unused2, uint32_t unused3);
 static int sys_vga_init_x(uint32_t unused1, uint32_t unused2, uint32_t unused3);
+static int sys_vga_init_y(uint32_t unused1, uint32_t unused2, uint32_t unused3);
 static int sys_vga_palette(uint32_t index, uint32_t rgb, uint32_t unused);
 
 /* System call table */
@@ -63,6 +64,7 @@ static syscall_fn syscall_table[NUM_SYSCALLS] = {
     [SYS_VGA_INIT_13H] = sys_vga_init_13h,
     [SYS_VGA_INIT_X]   = sys_vga_init_x,
     [SYS_VGA_PALETTE]  = sys_vga_palette,
+    [SYS_VGA_INIT_Y]   = sys_vga_init_y,
 };
 
 /**
@@ -255,7 +257,7 @@ static int sys_vga_exit(uint32_t unused1, uint32_t unused2, uint32_t unused3) {
 /**
  * SYS_VGA_CLEAR - Clear graphics screen with color
  * @param color: Fill color (depends on mode)
- * Mode-aware: works with 12h, 13h, and mode X
+ * Mode-aware: works with 12h, 13h, mode X, and mode Y
  */
 static int sys_vga_clear(uint32_t color, uint32_t unused1, uint32_t unused2) {
     (void)unused1;
@@ -272,6 +274,9 @@ static int sys_vga_clear(uint32_t color, uint32_t unused1, uint32_t unused2) {
         case VGA_MODE_X:
             vga_x_clear((uint8_t)color);
             break;
+        case VGA_MODE_Y:
+            vga_y_clear((uint8_t)color);
+            break;
         default:
             return -1;  /* Not in graphics mode */
     }
@@ -283,7 +288,7 @@ static int sys_vga_clear(uint32_t color, uint32_t unused1, uint32_t unused2) {
  * @param x: X coordinate
  * @param y: Y coordinate
  * @param color: Color (depends on mode)
- * Mode-aware: works with 12h, 13h, and mode X
+ * Mode-aware: works with 12h, 13h, mode X, and mode Y
  */
 static int sys_vga_pixel(uint32_t x, uint32_t y, uint32_t color) {
     int mode = vga_gfx_get_mode();
@@ -296,6 +301,9 @@ static int sys_vga_pixel(uint32_t x, uint32_t y, uint32_t color) {
             break;
         case VGA_MODE_X:
             vga_x_set_pixel((int)x, (int)y, (uint8_t)color);
+            break;
+        case VGA_MODE_Y:
+            vga_y_set_pixel((int)x, (int)y, (uint8_t)color);
             break;
         default:
             return -1;  /* Not in graphics mode */
@@ -382,6 +390,18 @@ static int sys_vga_init_x(uint32_t unused1, uint32_t unused2, uint32_t unused3) 
     (void)unused3;
     
     vga_gfx_init_x();
+    return 0;
+}
+
+/**
+ * SYS_VGA_INIT_Y - Enter VGA graphics mode Y (320x200x256, planar)
+ */
+static int sys_vga_init_y(uint32_t unused1, uint32_t unused2, uint32_t unused3) {
+    (void)unused1;
+    (void)unused2;
+    (void)unused3;
+    
+    vga_gfx_init_y();
     return 0;
 }
 

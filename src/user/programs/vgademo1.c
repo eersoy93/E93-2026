@@ -237,9 +237,10 @@ static void demo_landscape(void) {
  */
 void _start(void) {
     print("Starting VGA Demo (12h mode)...\n");
+    print("Resolution: 640x480, 16 colors (planar)\n");
     print("Press any key to begin...\n");
     getchar();
-    
+
     /* Enter graphics mode */
     gfx_init();
     

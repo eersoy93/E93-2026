@@ -138,7 +138,7 @@ static void draw_gradient(void) {
  */
 void _start(void) {
     print("=== VGA Mode X Demo ===\n\n");
-    print("Resolution: 320x240, 256 colors\n");
+    print("Resolution: 320x240, 256 colors (planar)\n");
     print("Press any key to switch patterns.\n");
     print("Press any key to start...\n");
     getchar();

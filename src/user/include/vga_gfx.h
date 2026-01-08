@@ -4,6 +4,7 @@
  * - Mode 12h: 640x480, 16 colors
  * - Mode 13h: 320x200, 256 colors
  * - Mode X: 320x240, 256 colors
+ * - Mode Y: 320x200, 256 colors, planar (4 pages)
  */
 
 #ifndef VGA_GFX_H
@@ -16,6 +17,8 @@
 #define GFX_HEIGHT_13H  200
 #define GFX_WIDTH_X     320
 #define GFX_HEIGHT_X    240
+#define GFX_WIDTH_Y     320
+#define GFX_HEIGHT_Y    200
 
 /* Legacy defines for mode 12h (backward compatibility) */
 #define GFX_WIDTH   640
@@ -32,6 +35,7 @@
 #define SYS_VGA_INIT_13H  21
 #define SYS_VGA_INIT_X    22
 #define SYS_VGA_PALETTE   23
+#define SYS_VGA_INIT_Y    24
 
 /* VGA 16-color palette */
 #define GFX_BLACK           0
@@ -87,6 +91,14 @@ static inline void gfx_init_13h(void) {
  */
 static inline void gfx_init_x(void) {
     _gfx_syscall(SYS_VGA_INIT_X, 0, 0, 0);
+}
+
+/**
+ * Initialize VGA graphics mode Y (320x200, 256 colors, planar)
+ * Planar mode like Mode X but with 200 lines (4 full pages)
+ */
+static inline void gfx_init_y(void) {
+    _gfx_syscall(SYS_VGA_INIT_Y, 0, 0, 0);
 }
 
 /**

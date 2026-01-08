@@ -33,6 +33,7 @@
 #define SYS_VGA_INIT_13H  21  /* Enter VGA graphics mode 13h (320x200x256) */
 #define SYS_VGA_INIT_X    22  /* Enter VGA graphics mode X (320x240x256) */
 #define SYS_VGA_PALETTE   23  /* Set palette entry (r, g, b packed) */
+#define SYS_VGA_INIT_Y    24  /* Enter VGA graphics mode Y (320x200x256, planar) */
 
 /* System call interrupt number */
 #define SYSCALL_INT     0x80

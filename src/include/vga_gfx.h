@@ -15,6 +15,7 @@
 #define VGA_MODE_12H    1   /* 640x480, 16 colors */
 #define VGA_MODE_13H    2   /* 320x200, 256 colors */
 #define VGA_MODE_X      3   /* 320x240, 256 colors */
+#define VGA_MODE_Y      4   /* 320x200, 256 colors, planar (4 pages) */
 
 /* VGA Mode 12h dimensions */
 #define VGA_GFX_WIDTH   640
@@ -30,6 +31,11 @@
 #define VGA_X_WIDTH     320
 #define VGA_X_HEIGHT    240
 #define VGA_X_COLORS    256
+
+/* VGA Mode Y dimensions (planar 320x200 with 4 pages) */
+#define VGA_Y_WIDTH     320
+#define VGA_Y_HEIGHT    200
+#define VGA_Y_COLORS    256
 
 /* VGA graphics memory address */
 #define VGA_GFX_MEMORY  0xA0000
@@ -224,6 +230,26 @@ uint8_t vga_x_get_pixel(int x, int y);
  * Clear screen in mode X
  */
 void vga_x_clear(uint8_t color);
+
+/**
+ * Initialize VGA mode Y (320x200, 256 colors, planar)
+ */
+void vga_gfx_init_y(void);
+
+/**
+ * Set a pixel in mode Y (planar)
+ */
+void vga_y_set_pixel(int x, int y, uint8_t color);
+
+/**
+ * Get a pixel in mode Y
+ */
+uint8_t vga_y_get_pixel(int x, int y);
+
+/**
+ * Clear screen in mode Y
+ */
+void vga_y_clear(uint8_t color);
 
 /**
  * Set palette color (for 256-color modes)
