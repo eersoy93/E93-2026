@@ -23,8 +23,8 @@ C_SOURCES = $(wildcard $(SRC_DIR)/kernel/*.c) \
             $(wildcard $(SRC_DIR)/lib/*.c)
 
 # User programs (C programs compiled to ELF)
-USER_C_SOURCES = $(wildcard $(SRC_DIR)/user/*.c)
-USER_PROGRAMS = $(patsubst $(SRC_DIR)/user/%.c,$(BUILD_DIR)/user/%,$(USER_C_SOURCES))
+USER_C_SOURCES = $(wildcard $(SRC_DIR)/user/programs/*.c)
+USER_PROGRAMS = $(patsubst $(SRC_DIR)/user/programs/%.c,$(BUILD_DIR)/user/%,$(USER_C_SOURCES))
 
 # Object files
 ASM_OBJECTS = $(patsubst $(SRC_DIR)/%.asm,$(BUILD_DIR)/%.o,$(ASM_SOURCES))
@@ -100,7 +100,7 @@ USER_CFLAGS = -m32 -ffreestanding -fno-stack-protector -fno-pic -fno-pie \
               -nostdlib -nostdinc -ffunction-sections -fdata-sections \
               -Wall -Wextra -Os -I$(SRC_DIR)/user/include
 
-$(BUILD_DIR)/user/%: $(SRC_DIR)/user/%.c $(SRC_DIR)/user/user.ld
+$(BUILD_DIR)/user/%: $(SRC_DIR)/user/programs/%.c $(SRC_DIR)/user/user.ld
 	@mkdir -p $(dir $@)
 	$(CC) $(USER_CFLAGS) -c $< -o $(BUILD_DIR)/user/$*.o
 	$(LD) -m elf_i386 -T $(SRC_DIR)/user/user.ld --gc-sections -o $@ $(BUILD_DIR)/user/$*.o
