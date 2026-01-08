@@ -245,6 +245,9 @@ void _start(void) {
     print("\n");
     setcolor(COLOR_WHITE, COLOR_BLACK);
     print("Welcome to E93-2026 " VERSION "!\n");
+    setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
+    print(COPYRIGHT_TEXT "\n");
+    print(LICENSE_TEXT "\n");
     setcolor(COLOR_DARK_GREY, COLOR_BLACK);
     print("Type 'help' for available commands.\n\n");
     setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
