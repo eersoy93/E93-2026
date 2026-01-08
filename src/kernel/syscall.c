@@ -12,6 +12,7 @@
 #include <string.h>
 #include <syscall.h>
 #include <vga.h>
+#include <vga_gfx.h>
 
 /* System call function type */
 typedef int (*syscall_fn)(uint32_t, uint32_t, uint32_t);
@@ -27,6 +28,13 @@ static int sys_exec(uint32_t path, uint32_t unused1, uint32_t unused2);
 static int sys_readdir(uint32_t path, uint32_t index, uint32_t buf);
 static int sys_clear(uint32_t unused1, uint32_t unused2, uint32_t unused3);
 static int sys_setcolor(uint32_t fg, uint32_t bg, uint32_t unused);
+static int sys_vga_init(uint32_t unused1, uint32_t unused2, uint32_t unused3);
+static int sys_vga_exit(uint32_t unused1, uint32_t unused2, uint32_t unused3);
+static int sys_vga_clear(uint32_t color, uint32_t unused1, uint32_t unused2);
+static int sys_vga_pixel(uint32_t x, uint32_t y, uint32_t color);
+static int sys_vga_line(uint32_t packed1, uint32_t packed2, uint32_t color);
+static int sys_vga_rect(uint32_t packed_xy, uint32_t packed_wh, uint32_t color_fill);
+static int sys_vga_circle(uint32_t packed_xy, uint32_t r, uint32_t color_fill);
 
 /* System call table */
 static syscall_fn syscall_table[NUM_SYSCALLS] = {
@@ -42,6 +50,13 @@ static syscall_fn syscall_table[NUM_SYSCALLS] = {
     [SYS_READDIR] = sys_readdir,
     [SYS_CLEAR]   = sys_clear,
     [SYS_SETCOLOR] = sys_setcolor,
+    [SYS_VGA_INIT]  = sys_vga_init,
+    [SYS_VGA_EXIT]  = sys_vga_exit,
+    [SYS_VGA_CLEAR] = sys_vga_clear,
+    [SYS_VGA_PIXEL] = sys_vga_pixel,
+    [SYS_VGA_LINE]  = sys_vga_line,
+    [SYS_VGA_RECT]  = sys_vga_rect,
+    [SYS_VGA_CIRCLE] = sys_vga_circle,
 };
 
 /**
@@ -204,6 +219,111 @@ static int sys_setcolor(uint32_t fg, uint32_t bg, uint32_t unused) {
     if (bg > 15) bg = 15;
     
     vga_set_color((enum vga_color)fg, (enum vga_color)bg);
+    return 0;
+}
+
+/**
+ * SYS_VGA_INIT - Enter VGA graphics mode 12h (640x480x16)
+ */
+static int sys_vga_init(uint32_t unused1, uint32_t unused2, uint32_t unused3) {
+    (void)unused1;
+    (void)unused2;
+    (void)unused3;
+    
+    vga_gfx_init();
+    return 0;
+}
+
+/**
+ * SYS_VGA_EXIT - Exit VGA graphics mode, return to text mode
+ */
+static int sys_vga_exit(uint32_t unused1, uint32_t unused2, uint32_t unused3) {
+    (void)unused1;
+    (void)unused2;
+    (void)unused3;
+    
+    vga_gfx_exit();
+    return 0;
+}
+
+/**
+ * SYS_VGA_CLEAR - Clear graphics screen with color
+ * @param color: Fill color (0-15)
+ */
+static int sys_vga_clear(uint32_t color, uint32_t unused1, uint32_t unused2) {
+    (void)unused1;
+    (void)unused2;
+    
+    vga_gfx_clear((uint8_t)color);
+    return 0;
+}
+
+/**
+ * SYS_VGA_PIXEL - Set a pixel
+ * @param x: X coordinate
+ * @param y: Y coordinate
+ * @param color: Color (0-15)
+ */
+static int sys_vga_pixel(uint32_t x, uint32_t y, uint32_t color) {
+    vga_gfx_set_pixel((int)x, (int)y, (uint8_t)color);
+    return 0;
+}
+
+/**
+ * SYS_VGA_LINE - Draw a line
+ * @param packed1: x1 | (y1 << 16)
+ * @param packed2: x2 | (y2 << 16)
+ * @param color: Color (0-15)
+ */
+static int sys_vga_line(uint32_t packed1, uint32_t packed2, uint32_t color) {
+    int x1 = (int)(packed1 & 0xFFFF);
+    int y1 = (int)(packed1 >> 16);
+    int x2 = (int)(packed2 & 0xFFFF);
+    int y2 = (int)(packed2 >> 16);
+    
+    vga_gfx_line(x1, y1, x2, y2, (uint8_t)color);
+    return 0;
+}
+
+/**
+ * SYS_VGA_RECT - Draw a rectangle
+ * @param packed_xy: x | (y << 16)
+ * @param packed_wh: w | (h << 16)
+ * @param color_fill: color | (filled << 8)
+ */
+static int sys_vga_rect(uint32_t packed_xy, uint32_t packed_wh, uint32_t color_fill) {
+    int x = (int)(packed_xy & 0xFFFF);
+    int y = (int)(packed_xy >> 16);
+    int w = (int)(packed_wh & 0xFFFF);
+    int h = (int)(packed_wh >> 16);
+    uint8_t color = (uint8_t)(color_fill & 0xFF);
+    int filled = (color_fill >> 8) & 1;
+    
+    if (filled) {
+        vga_gfx_fill_rect(x, y, w, h, color);
+    } else {
+        vga_gfx_rect(x, y, w, h, color);
+    }
+    return 0;
+}
+
+/**
+ * SYS_VGA_CIRCLE - Draw a circle
+ * @param packed_xy: cx | (cy << 16)
+ * @param r: radius
+ * @param color_fill: color | (filled << 8)
+ */
+static int sys_vga_circle(uint32_t packed_xy, uint32_t r, uint32_t color_fill) {
+    int cx = (int)(packed_xy & 0xFFFF);
+    int cy = (int)(packed_xy >> 16);
+    uint8_t color = (uint8_t)(color_fill & 0xFF);
+    int filled = (color_fill >> 8) & 1;
+    
+    if (filled) {
+        vga_gfx_fill_circle(cx, cy, (int)r, color);
+    } else {
+        vga_gfx_circle(cx, cy, (int)r, color);
+    }
     return 0;
 }
 

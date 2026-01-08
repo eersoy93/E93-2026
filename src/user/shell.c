@@ -68,6 +68,10 @@ static void cmd_help(void) {
     setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
     print("- Run a program from /programs/\n");
     setcolor(COLOR_YELLOW, COLOR_BLACK);
+    print("  version       ");
+    setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
+    print("- Show version information\n");
+    setcolor(COLOR_YELLOW, COLOR_BLACK);
     print("  exit          ");
     setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
     print("- Exit shell and halt system\n");
@@ -147,6 +151,23 @@ static void cmd_beep(void) {
 }
 
 /**
+ * Built-in: version
+ */
+static void cmd_version(void) {
+    print("\n");
+    setcolor(COLOR_LIGHT_CYAN, COLOR_BLACK);
+    print("E93-2026 ");
+    setcolor(COLOR_WHITE, COLOR_BLACK);
+    print(VERSION);
+    print("\n");
+    setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
+    print(COPYRIGHT_TEXT);
+    print("\n");
+    print(LICENSE_TEXT);
+    print("\n\n");
+}
+
+/**
  * Built-in: run
  */
 static void cmd_run(const char *name) {
@@ -209,6 +230,9 @@ static void process_command(char *line) {
     }
     else if (strcmp(cmd, "beep") == 0) {
         cmd_beep();
+    }
+    else if (strcmp(cmd, "version") == 0 || strcmp(cmd, "ver") == 0) {
+        cmd_version();
     }
     else if (strcmp(cmd, "run") == 0) {
         cmd_run(rest);
