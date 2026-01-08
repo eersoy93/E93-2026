@@ -3,15 +3,15 @@
  * Provides system call interface for userspace programs
  */
 
-#include "fs.h"
-#include "idt.h"
-#include "keyboard.h"
-#include "loader.h"
-#include "pit.h"
-#include "speaker.h"
-#include "string.h"
-#include "syscall.h"
-#include "vga.h"
+#include <fs.h>
+#include <idt.h>
+#include <keyboard.h>
+#include <loader.h>
+#include <pit.h>
+#include <speaker.h>
+#include <string.h>
+#include <syscall.h>
+#include <vga.h>
 
 /* System call function type */
 typedef int (*syscall_fn)(uint32_t, uint32_t, uint32_t);

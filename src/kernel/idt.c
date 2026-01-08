@@ -3,9 +3,9 @@
  * Sets up interrupt handling for the kernel
  */
 
-#include "idt.h"
-#include "ports.h"
-#include "vga.h"
+#include <idt.h>
+#include <ports.h>
+#include <vga.h>
 
 /* IDT and IDT pointer */
 static idt_entry_t idt[IDT_ENTRIES];

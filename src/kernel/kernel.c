@@ -3,18 +3,18 @@
  * Main kernel entry point and core functionality
  */
 
-#include "fs.h"
-#include "ide.h"
-#include "idt.h"
-#include "iso9660.h"
-#include "kernel.h"
-#include "keyboard.h"
-#include "loader.h"
-#include "pit.h"
-#include "speaker.h"
-#include "string.h"
-#include "syscall.h"
-#include "vga.h"
+#include <fs.h>
+#include <ide.h>
+#include <idt.h>
+#include <iso9660.h>
+#include <kernel.h>
+#include <keyboard.h>
+#include <loader.h>
+#include <pit.h>
+#include <speaker.h>
+#include <string.h>
+#include <syscall.h>
+#include <vga.h>
 
 /* Multiboot magic number */
 #define MULTIBOOT_MAGIC 0x2BADB002

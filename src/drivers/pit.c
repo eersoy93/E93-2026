@@ -3,10 +3,10 @@
  * Intel 8253/8254 timer chip - provides system timing
  */
 
-#include "idt.h"
-#include "kernel.h"
-#include "pit.h"
-#include "ports.h"
+#include <idt.h>
+#include <kernel.h>
+#include <pit.h>
+#include <ports.h>
 
 /* Current tick count (incremented by timer interrupt) */
 static volatile uint32_t pit_ticks = 0;

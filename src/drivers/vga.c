@@ -3,8 +3,8 @@
  * Handles text output to VGA text mode (80x25)
  */
 
-#include "vga.h"
-#include "ports.h"
+#include <vga.h>
+#include <ports.h>
 
 /* VGA text buffer address */
 static uint16_t *vga_buffer = (uint16_t *)VGA_MEMORY;

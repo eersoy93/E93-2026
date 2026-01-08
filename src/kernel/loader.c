@@ -3,9 +3,9 @@
  * ELF32 program loader for userspace applications
  */
 
-#include "loader.h"
-#include "vga.h"
-#include "string.h"
+#include <loader.h>
+#include <vga.h>
+#include <string.h>
 
 /* Current program state */
 static program_t current_program;

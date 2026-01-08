@@ -8,13 +8,11 @@
  *   clear   - Clear the screen
  *   echo    - Print text
  *   beep    - Play a beep sound
+ *   run     - Run a program
  *   exit    - Exit shell (halt system)
- * 
- * External commands:
- *   Any executable in /programs/ can be run by name
  */
 
-#include "user.h"
+#include <user.h>
 
 /* Maximum command line length */
 #define CMD_MAX_LEN     256
@@ -35,66 +33,6 @@ static void print_prompt(void) {
     setcolor(COLOR_WHITE, COLOR_BLACK);
     print("> ");
     setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
-}
-
-/**
- * Print a number
- */
-static void print_num(int n) {
-    char buf[16];
-    int i = 0;
-    int neg = 0;
-    
-    if (n < 0) {
-        neg = 1;
-        n = -n;
-    }
-    
-    if (n == 0) {
-        putchar('0');
-        return;
-    }
-    
-    while (n > 0) {
-        buf[i++] = '0' + (n % 10);
-        n /= 10;
-    }
-    
-    if (neg) putchar('-');
-    while (i > 0) putchar(buf[--i]);
-}
-
-/**
- * Skip whitespace in string
- */
-static const char *skip_whitespace(const char *s) {
-    while (*s == ' ' || *s == '\t') s++;
-    return s;
-}
-
-/**
- * Get the next word from string, returns pointer to end
- */
-static const char *get_word(const char *s, char *word, int max_len) {
-    int i = 0;
-    s = skip_whitespace(s);
-    while (*s && *s != ' ' && *s != '\t' && i < max_len - 1) {
-        word[i++] = *s++;
-    }
-    word[i] = '\0';
-    return s;
-}
-
-/**
- * Convert string to lowercase (in place)
- */
-static void to_lower(char *s) {
-    while (*s) {
-        if (*s >= 'A' && *s <= 'Z') {
-            *s = *s + ('a' - 'A');
-        }
-        s++;
-    }
 }
 
 /**
@@ -126,13 +64,13 @@ static void cmd_help(void) {
     setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
     print("- Play a beep sound\n");
     setcolor(COLOR_YELLOW, COLOR_BLACK);
+    print("  run <program> ");
+    setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
+    print("- Run a program from /programs/\n");
+    setcolor(COLOR_YELLOW, COLOR_BLACK);
     print("  exit          ");
     setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
     print("- Exit shell and halt system\n");
-    print("\n");
-    setcolor(COLOR_DARK_GREY, COLOR_BLACK);
-    print("Run programs from /programs/ by name (e.g., 'hello')\n");
-    setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
     print("\n");
 }
 
@@ -179,7 +117,7 @@ static void cmd_ls(const char *path) {
     }
     
     setcolor(COLOR_DARK_GREY, COLOR_BLACK);
-    print_num(count);
+    print_int(count);
     print(" file(s)\n");
     setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
 }
@@ -209,20 +147,31 @@ static void cmd_beep(void) {
 }
 
 /**
- * Try to execute an external program
+ * Built-in: run
  */
-static int try_exec(const char *name) {
+static void cmd_run(const char *name) {
     char path[CMD_MAX_LEN];
+    
+    if (!name || !*name) {
+        setcolor(COLOR_LIGHT_RED, COLOR_BLACK);
+        print("Usage: run <program>\n");
+        setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
+        return;
+    }
     
     /* Build full path */
     strcpy(path, "/programs/");
     strcat(path, name);
     
     /* Try to execute */
-    int ret = exec(path);
-    
-    /* If exec returns, it failed */
-    return ret;
+    if (exec(path) < 0) {
+        setcolor(COLOR_LIGHT_RED, COLOR_BLACK);
+        print("Program not found: ");
+        setcolor(COLOR_WHITE, COLOR_BLACK);
+        print(name);
+        setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
+        print("\n");
+    }
 }
 
 /**
@@ -243,7 +192,7 @@ static void process_command(char *line) {
     rest = skip_whitespace(rest);
     
     /* Convert command to lowercase for comparison */
-    to_lower(cmd);
+    str_tolower(cmd);
     
     /* Check built-in commands */
     if (strcmp(cmd, "help") == 0 || strcmp(cmd, "?") == 0) {
@@ -261,20 +210,20 @@ static void process_command(char *line) {
     else if (strcmp(cmd, "beep") == 0) {
         cmd_beep();
     }
+    else if (strcmp(cmd, "run") == 0) {
+        cmd_run(rest);
+    }
     else if (strcmp(cmd, "exit") == 0 || strcmp(cmd, "quit") == 0) {
         print("Goodbye!\n");
         exit(0);
     }
     else {
-        /* Try to run as external program */
-        if (try_exec(cmd) < 0) {
-            setcolor(COLOR_LIGHT_RED, COLOR_BLACK);
-            print("Unknown command: ");
-            setcolor(COLOR_WHITE, COLOR_BLACK);
-            print(cmd);
-            setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
-            print("\nType 'help' for available commands.\n");
-        }
+        setcolor(COLOR_LIGHT_RED, COLOR_BLACK);
+        print("Unknown command: ");
+        setcolor(COLOR_WHITE, COLOR_BLACK);
+        print(cmd);
+        setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
+        print("\nType 'help' for available commands.\n");
     }
 }
 
@@ -295,7 +244,7 @@ void _start(void) {
     setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
     print("\n");
     setcolor(COLOR_WHITE, COLOR_BLACK);
-    print("Welcome to E93-2026 Shell!\n");
+    print("Welcome to E93-2026 " VERSION "!\n");
     setcolor(COLOR_DARK_GREY, COLOR_BLACK);
     print("Type 'help' for available commands.\n\n");
     setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);

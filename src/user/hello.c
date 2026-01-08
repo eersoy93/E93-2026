@@ -6,15 +6,21 @@
  * Entry point: _start at virtual address 0x400000
  */
 
-#include "user.h"
+#include <user.h>
 
 /* Program entry point */
 void _start(void) {
+    /* Print Hello message */
     print("Hello from userspace!\n");
 
     /* Play a success beep */
     beep(1000, 100);
-    
+
+    /* Wait for user input before exiting */
+    print("Press any key to continue...\n");
+    getchar();
+    print("Exiting now...\n");
+
     /* Exit cleanly */
     exit(0);
 }

@@ -4,13 +4,13 @@
  * Supports PIO mode for ATA and ATAPI devices
  */
 
-#include "ide.h"
-#include "idt.h"
-#include "kernel.h"
-#include "pit.h"
-#include "ports.h"
-#include "string.h"
-#include "vga.h"
+#include <ide.h>
+#include <idt.h>
+#include <kernel.h>
+#include <pit.h>
+#include <ports.h>
+#include <string.h>
+#include <vga.h>
 
 /* IDE channels */
 static ide_channel_t ide_channels[2] = {

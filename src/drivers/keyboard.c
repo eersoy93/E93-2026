@@ -3,10 +3,10 @@
  * PS/2 keyboard driver for reading user input
  */
 
-#include "keyboard.h"
-#include "idt.h"
-#include "ports.h"
-#include "vga.h"
+#include <keyboard.h>
+#include <idt.h>
+#include <ports.h>
+#include <vga.h>
 
 /* Keyboard buffer */
 static char kbd_buffer[KBD_BUFFER_SIZE];

@@ -3,9 +3,9 @@
  * Controls the PC speaker using PIT (Programmable Interval Timer) channel 2
  */
 
-#include "speaker.h"
-#include "pit.h"
-#include "ports.h"
+#include <speaker.h>
+#include <pit.h>
+#include <ports.h>
 
 /**
  * Initialize the PC speaker

@@ -10,11 +10,6 @@
 #include "stddef.h"
 #include "ports.h"
 
-/* Kernel version */
-#define KERNEL_VERSION_MAJOR 0
-#define KERNEL_VERSION_MINOR 1
-#define KERNEL_VERSION_PATCH 0
-
 /* Kernel entry point */
 void kernel_main(unsigned int magic, unsigned int *mboot_info);
 

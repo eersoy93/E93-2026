@@ -98,9 +98,9 @@ $(ISO): $(KERNEL) grub.cfg $(USER_PROGRAMS)
 # Compiler flags for userspace (no kernel includes)
 USER_CFLAGS = -m32 -ffreestanding -fno-stack-protector -fno-pic -fno-pie \
               -nostdlib -nostdinc -ffunction-sections -fdata-sections \
-              -Wall -Wextra -Os -I$(SRC_DIR)/user
+              -Wall -Wextra -Os -I$(SRC_DIR)/user/include
 
-$(BUILD_DIR)/user/%: $(SRC_DIR)/user/%.c $(SRC_DIR)/user/user.h $(SRC_DIR)/user/user.ld
+$(BUILD_DIR)/user/%: $(SRC_DIR)/user/%.c $(SRC_DIR)/user/user.ld
 	@mkdir -p $(dir $@)
 	$(CC) $(USER_CFLAGS) -c $< -o $(BUILD_DIR)/user/$*.o
 	$(LD) -m elf_i386 -T $(SRC_DIR)/user/user.ld --gc-sections -o $@ $(BUILD_DIR)/user/$*.o

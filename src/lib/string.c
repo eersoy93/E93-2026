@@ -3,8 +3,8 @@
  * Basic string and memory manipulation functions
  */
 
-#include "stddef.h"
-#include "stdint.h"
+#include <stddef.h>
+#include <stdint.h>
 
 /**
  * Set memory to a specific value

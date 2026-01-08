@@ -3,10 +3,10 @@
  * Abstract filesystem interface for the kernel
  */
 
-#include "fs.h"
-#include "kernel.h"
-#include "string.h"
-#include "vga.h"
+#include <fs.h>
+#include <kernel.h>
+#include <string.h>
+#include <vga.h>
 
 /* Maximum number of registered filesystems */
 #define MAX_FILESYSTEMS 8
