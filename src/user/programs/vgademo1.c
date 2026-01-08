@@ -236,6 +236,10 @@ static void demo_landscape(void) {
  * Main demo entry point
  */
 void _start(void) {
+    print("Starting VGA Demo (12h mode)...\n");
+    print("Press any key to begin...\n");
+    getchar();
+    
     /* Enter graphics mode */
     gfx_init();
     

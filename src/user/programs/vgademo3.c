@@ -1,6 +1,6 @@
 /**
- * VGA Mode 13h Demo
- * Demonstrates VGA mode 13h (320x200, 256 colors)
+ * VGA Mode X Demo
+ * Demonstrates VGA mode X (320x240, 256 colors)
  * 
  * Compiled as ELF32 executable by the build system.
  * Entry point: _start at virtual address 0x400000
@@ -83,15 +83,21 @@ static void setup_rainbow_palette(void) {
 }
 
 /**
- * Draw a plasma-like pattern
+ * Draw concentric circles
  */
-static void draw_plasma(void) {
+static void draw_circles(void) {
+    int cx = GFX_WIDTH_X / 2;
+    int cy = GFX_HEIGHT_X / 2;
     int x, y;
     
-    for (y = 0; y < GFX_HEIGHT_13H; y++) {
-        for (x = 0; x < GFX_WIDTH_13H; x++) {
-            /* Simple plasma-like calculation */
-            int color = (x + y + (x * y / 64)) & 0xFF;
+    for (y = 0; y < GFX_HEIGHT_X; y++) {
+        for (x = 0; x < GFX_WIDTH_X; x++) {
+            int dx = x - cx;
+            int dy = y - cy;
+            /* Approximate distance (no sqrt needed) */
+            int dist = dx * dx + dy * dy;
+            /* Use distance to determine color */
+            int color = (dist / 32) & 0xFF;
             gfx_pixel(x, y, color);
         }
     }
@@ -102,10 +108,10 @@ static void draw_plasma(void) {
  */
 static void draw_color_bars(void) {
     int x, y;
-    int bar_width = GFX_WIDTH_13H / 16;
+    int bar_width = GFX_WIDTH_X / 16;
     
-    for (y = 0; y < GFX_HEIGHT_13H; y++) {
-        for (x = 0; x < GFX_WIDTH_13H; x++) {
+    for (y = 0; y < GFX_HEIGHT_X; y++) {
+        for (x = 0; x < GFX_WIDTH_X; x++) {
             int color = (x / bar_width) * 16;  /* 16 color bands */
             gfx_pixel(x, y, color);
         }
@@ -118,10 +124,10 @@ static void draw_color_bars(void) {
 static void draw_gradient(void) {
     int x, y;
     
-    for (y = 0; y < GFX_HEIGHT_13H; y++) {
-        for (x = 0; x < GFX_WIDTH_13H; x++) {
+    for (y = 0; y < GFX_HEIGHT_X; y++) {
+        for (x = 0; x < GFX_WIDTH_X; x++) {
             /* Horizontal gradient using x position */
-            int color = (x * 256) / GFX_WIDTH_13H;
+            int color = (x * 256) / GFX_WIDTH_X;
             gfx_pixel(x, y, color);
         }
     }
@@ -131,13 +137,13 @@ static void draw_gradient(void) {
  * The program entry point
  */
 void _start(void) {
-    print("=== VGA Mode 13h Demo ===\n\n");
-    print("Resolution: 320x200, 256 colors\n");
+    print("=== VGA Mode X Demo ===\n\n");
+    print("Resolution: 320x240, 256 colors\n");
     print("Press any key to switch patterns.\n");
     print("Press any key to start...\n");
     getchar();
     
-    gfx_init_13h();
+    gfx_init_x();
     
     /* Set up rainbow palette */
     setup_rainbow_palette();
@@ -148,8 +154,8 @@ void _start(void) {
     /* Wait for keypress */
     getchar();
     
-    /* Draw plasma pattern */
-    draw_plasma();
+    /* Draw concentric circles */
+    draw_circles();
     
     /* Wait for keypress */
     getchar();
