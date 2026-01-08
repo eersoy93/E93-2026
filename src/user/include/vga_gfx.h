@@ -1,23 +1,37 @@
 /**
  * VGA Graphics Library Header
- * Provides VGA mode 12h (640x480x16) graphics for userspace programs
+ * Provides VGA graphics modes for userspace programs:
+ * - Mode 12h: 640x480, 16 colors
+ * - Mode 13h: 320x200, 256 colors
+ * - Mode X: 320x240, 256 colors
  */
 
 #ifndef VGA_GFX_H
 #define VGA_GFX_H
 
-/* VGA Mode 12h dimensions */
+/* VGA Mode dimensions */
+#define GFX_WIDTH_12H   640
+#define GFX_HEIGHT_12H  480
+#define GFX_WIDTH_13H   320
+#define GFX_HEIGHT_13H  200
+#define GFX_WIDTH_X     320
+#define GFX_HEIGHT_X    240
+
+/* Legacy defines for mode 12h (backward compatibility) */
 #define GFX_WIDTH   640
 #define GFX_HEIGHT  480
 
 /* VGA graphics syscall numbers */
-#define SYS_VGA_INIT    14
-#define SYS_VGA_EXIT    15
-#define SYS_VGA_CLEAR   16
-#define SYS_VGA_PIXEL   17
-#define SYS_VGA_LINE    18
-#define SYS_VGA_RECT    19
-#define SYS_VGA_CIRCLE  20
+#define SYS_VGA_INIT      14
+#define SYS_VGA_EXIT      15
+#define SYS_VGA_CLEAR     16
+#define SYS_VGA_PIXEL     17
+#define SYS_VGA_LINE      18
+#define SYS_VGA_RECT      19
+#define SYS_VGA_CIRCLE    20
+#define SYS_VGA_INIT_13H  21
+#define SYS_VGA_INIT_X    22
+#define SYS_VGA_PALETTE   23
 
 /* VGA 16-color palette */
 #define GFX_BLACK           0
@@ -57,6 +71,22 @@ static inline int _gfx_syscall(int num, int arg1, int arg2, int arg3) {
  */
 static inline void gfx_init(void) {
     _gfx_syscall(SYS_VGA_INIT, 0, 0, 0);
+}
+
+/**
+ * Initialize VGA graphics mode 13h (320x200, 256 colors)
+ * Linear framebuffer, simpler than mode 12h
+ */
+static inline void gfx_init_13h(void) {
+    _gfx_syscall(SYS_VGA_INIT_13H, 0, 0, 0);
+}
+
+/**
+ * Initialize VGA graphics mode X (320x240, 256 colors)
+ * Planar mode with more vertical resolution
+ */
+static inline void gfx_init_x(void) {
+    _gfx_syscall(SYS_VGA_INIT_X, 0, 0, 0);
 }
 
 /**
@@ -159,6 +189,25 @@ static inline void gfx_hline(int x1, int x2, int y, int color) {
  */
 static inline void gfx_vline(int x, int y1, int y2, int color) {
     gfx_line(x, y1, x, y2, color);
+}
+
+/**
+ * Set a VGA palette entry (for 256-color modes)
+ * @param index: Palette index (0-255)
+ * @param r: Red component (0-63)
+ * @param g: Green component (0-63)
+ * @param b: Blue component (0-63)
+ */
+static inline void gfx_set_palette(int index, int r, int g, int b) {
+    int rgb = (r & 0xFF) | ((g & 0xFF) << 8) | ((b & 0xFF) << 16);
+    _gfx_syscall(SYS_VGA_PALETTE, index, rgb, 0);
+}
+
+/**
+ * Create a packed RGB value for palette functions
+ */
+static inline int gfx_rgb(int r, int g, int b) {
+    return (r & 0x3F) | ((g & 0x3F) << 8) | ((b & 0x3F) << 16);
 }
 
 #endif /* VGA_GFX_H */

@@ -3,6 +3,9 @@
  * Demonstrates VGA mode 12h (640x480, 16 colors) graphics
  * 
  * Shows various drawing primitives and animations
+ * 
+ * Compiled as ELF32 executable by the build system.
+ * Entry point: _start at virtual address 0x400000
  */
 
 #include <user.h>
@@ -263,7 +266,7 @@ void _start(void) {
     /* Return to text mode */
     gfx_exit();
     
-    print("VGA Demo completed!\n");
+    print("VGA Demo (12h mode) completed!\n");
     print("Press any key to exit...\n");
     getchar();
     

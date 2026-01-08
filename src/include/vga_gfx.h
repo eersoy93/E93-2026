@@ -1,6 +1,8 @@
 /**
  * VGA Graphics Mode Driver Header
  * VGA mode 12h (640x480, 16 colors) definitions
+ * VGA mode 13h (320x200, 256 colors) definitions
+ * VGA mode X (320x240, 256 colors) definitions
  */
 
 #ifndef VGA_GFX_H
@@ -8,10 +10,26 @@
 
 #include "stdint.h"
 
+/* VGA Mode types */
+#define VGA_MODE_TEXT   0   /* 80x25 text mode */
+#define VGA_MODE_12H    1   /* 640x480, 16 colors */
+#define VGA_MODE_13H    2   /* 320x200, 256 colors */
+#define VGA_MODE_X      3   /* 320x240, 256 colors */
+
 /* VGA Mode 12h dimensions */
 #define VGA_GFX_WIDTH   640
 #define VGA_GFX_HEIGHT  480
 #define VGA_GFX_COLORS  16
+
+/* VGA Mode 13h dimensions */
+#define VGA_13H_WIDTH   320
+#define VGA_13H_HEIGHT  200
+#define VGA_13H_COLORS  256
+
+/* VGA Mode X dimensions */
+#define VGA_X_WIDTH     320
+#define VGA_X_HEIGHT    240
+#define VGA_X_COLORS    256
 
 /* VGA graphics memory address */
 #define VGA_GFX_MEMORY  0xA0000
@@ -160,5 +178,58 @@ void vga_gfx_fill_circle(int cx, int cy, int r, uint8_t color);
  * @return: 1 if in graphics mode, 0 otherwise
  */
 int vga_gfx_is_active(void);
+
+/**
+ * Get current graphics mode
+ * @return: VGA_MODE_TEXT, VGA_MODE_12H, VGA_MODE_13H, or VGA_MODE_X
+ */
+int vga_gfx_get_mode(void);
+
+/**
+ * Initialize VGA mode 13h (320x200, 256 colors)
+ */
+void vga_gfx_init_13h(void);
+
+/**
+ * Initialize VGA mode X (320x240, 256 colors)
+ */
+void vga_gfx_init_x(void);
+
+/**
+ * Set a pixel in mode 13h (linear framebuffer)
+ */
+void vga_13h_set_pixel(int x, int y, uint8_t color);
+
+/**
+ * Get a pixel in mode 13h
+ */
+uint8_t vga_13h_get_pixel(int x, int y);
+
+/**
+ * Clear screen in mode 13h
+ */
+void vga_13h_clear(uint8_t color);
+
+/**
+ * Set a pixel in mode X (planar)
+ */
+void vga_x_set_pixel(int x, int y, uint8_t color);
+
+/**
+ * Get a pixel in mode X
+ */
+uint8_t vga_x_get_pixel(int x, int y);
+
+/**
+ * Clear screen in mode X
+ */
+void vga_x_clear(uint8_t color);
+
+/**
+ * Set palette color (for 256-color modes)
+ * @param index: Color index (0-255)
+ * @param r, g, b: RGB values (0-63)
+ */
+void vga_set_palette(uint8_t index, uint8_t r, uint8_t g, uint8_t b);
 
 #endif /* VGA_GFX_H */

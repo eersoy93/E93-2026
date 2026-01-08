@@ -35,6 +35,9 @@ static int sys_vga_pixel(uint32_t x, uint32_t y, uint32_t color);
 static int sys_vga_line(uint32_t packed1, uint32_t packed2, uint32_t color);
 static int sys_vga_rect(uint32_t packed_xy, uint32_t packed_wh, uint32_t color_fill);
 static int sys_vga_circle(uint32_t packed_xy, uint32_t r, uint32_t color_fill);
+static int sys_vga_init_13h(uint32_t unused1, uint32_t unused2, uint32_t unused3);
+static int sys_vga_init_x(uint32_t unused1, uint32_t unused2, uint32_t unused3);
+static int sys_vga_palette(uint32_t index, uint32_t rgb, uint32_t unused);
 
 /* System call table */
 static syscall_fn syscall_table[NUM_SYSCALLS] = {
@@ -50,13 +53,16 @@ static syscall_fn syscall_table[NUM_SYSCALLS] = {
     [SYS_READDIR] = sys_readdir,
     [SYS_CLEAR]   = sys_clear,
     [SYS_SETCOLOR] = sys_setcolor,
-    [SYS_VGA_INIT]  = sys_vga_init,
-    [SYS_VGA_EXIT]  = sys_vga_exit,
-    [SYS_VGA_CLEAR] = sys_vga_clear,
-    [SYS_VGA_PIXEL] = sys_vga_pixel,
-    [SYS_VGA_LINE]  = sys_vga_line,
-    [SYS_VGA_RECT]  = sys_vga_rect,
-    [SYS_VGA_CIRCLE] = sys_vga_circle,
+    [SYS_VGA_INIT]    = sys_vga_init,
+    [SYS_VGA_EXIT]    = sys_vga_exit,
+    [SYS_VGA_CLEAR]   = sys_vga_clear,
+    [SYS_VGA_PIXEL]   = sys_vga_pixel,
+    [SYS_VGA_LINE]    = sys_vga_line,
+    [SYS_VGA_RECT]    = sys_vga_rect,
+    [SYS_VGA_CIRCLE]  = sys_vga_circle,
+    [SYS_VGA_INIT_13H] = sys_vga_init_13h,
+    [SYS_VGA_INIT_X]   = sys_vga_init_x,
+    [SYS_VGA_PALETTE]  = sys_vga_palette,
 };
 
 /**
@@ -248,13 +254,27 @@ static int sys_vga_exit(uint32_t unused1, uint32_t unused2, uint32_t unused3) {
 
 /**
  * SYS_VGA_CLEAR - Clear graphics screen with color
- * @param color: Fill color (0-15)
+ * @param color: Fill color (depends on mode)
+ * Mode-aware: works with 12h, 13h, and mode X
  */
 static int sys_vga_clear(uint32_t color, uint32_t unused1, uint32_t unused2) {
     (void)unused1;
     (void)unused2;
     
-    vga_gfx_clear((uint8_t)color);
+    int mode = vga_gfx_get_mode();
+    switch (mode) {
+        case VGA_MODE_12H:
+            vga_gfx_clear((uint8_t)color);
+            break;
+        case VGA_MODE_13H:
+            vga_13h_clear((uint8_t)color);
+            break;
+        case VGA_MODE_X:
+            vga_x_clear((uint8_t)color);
+            break;
+        default:
+            return -1;  /* Not in graphics mode */
+    }
     return 0;
 }
 
@@ -262,10 +282,24 @@ static int sys_vga_clear(uint32_t color, uint32_t unused1, uint32_t unused2) {
  * SYS_VGA_PIXEL - Set a pixel
  * @param x: X coordinate
  * @param y: Y coordinate
- * @param color: Color (0-15)
+ * @param color: Color (depends on mode)
+ * Mode-aware: works with 12h, 13h, and mode X
  */
 static int sys_vga_pixel(uint32_t x, uint32_t y, uint32_t color) {
-    vga_gfx_set_pixel((int)x, (int)y, (uint8_t)color);
+    int mode = vga_gfx_get_mode();
+    switch (mode) {
+        case VGA_MODE_12H:
+            vga_gfx_set_pixel((int)x, (int)y, (uint8_t)color);
+            break;
+        case VGA_MODE_13H:
+            vga_13h_set_pixel((int)x, (int)y, (uint8_t)color);
+            break;
+        case VGA_MODE_X:
+            vga_x_set_pixel((int)x, (int)y, (uint8_t)color);
+            break;
+        default:
+            return -1;  /* Not in graphics mode */
+    }
     return 0;
 }
 
@@ -324,6 +358,46 @@ static int sys_vga_circle(uint32_t packed_xy, uint32_t r, uint32_t color_fill) {
     } else {
         vga_gfx_circle(cx, cy, (int)r, color);
     }
+    return 0;
+}
+
+/**
+ * SYS_VGA_INIT_13H - Enter VGA graphics mode 13h (320x200x256)
+ */
+static int sys_vga_init_13h(uint32_t unused1, uint32_t unused2, uint32_t unused3) {
+    (void)unused1;
+    (void)unused2;
+    (void)unused3;
+    
+    vga_gfx_init_13h();
+    return 0;
+}
+
+/**
+ * SYS_VGA_INIT_X - Enter VGA graphics mode X (320x240x256)
+ */
+static int sys_vga_init_x(uint32_t unused1, uint32_t unused2, uint32_t unused3) {
+    (void)unused1;
+    (void)unused2;
+    (void)unused3;
+    
+    vga_gfx_init_x();
+    return 0;
+}
+
+/**
+ * SYS_VGA_PALETTE - Set a VGA palette entry
+ * @param index: Palette index (0-255)
+ * @param rgb: Color value (r | (g << 8) | (b << 16))
+ */
+static int sys_vga_palette(uint32_t index, uint32_t rgb, uint32_t unused) {
+    (void)unused;
+    
+    uint8_t r = (uint8_t)(rgb & 0xFF);
+    uint8_t g = (uint8_t)((rgb >> 8) & 0xFF);
+    uint8_t b = (uint8_t)((rgb >> 16) & 0xFF);
+    
+    vga_set_palette((uint8_t)index, r, g, b);
     return 0;
 }
 

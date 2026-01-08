@@ -19,7 +19,7 @@
 #define MAX_ARGS        16
 
 /* Current working directory */
-static char cwd[CMD_MAX_LEN] = "/programs";
+static char cwd[CMD_MAX_LEN] = "/user";
 
 /* Command buffer */
 static char cmd_buf[CMD_MAX_LEN];
@@ -52,6 +52,14 @@ static void cmd_help(void) {
     setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
     print("- List directory contents\n");
     setcolor(COLOR_YELLOW, COLOR_BLACK);
+    print("  pwd           ");
+    setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
+    print("- Print working directory\n");
+    setcolor(COLOR_YELLOW, COLOR_BLACK);
+    print("  cd <dir>      ");
+    setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
+    print("- Change directory\n");
+    setcolor(COLOR_YELLOW, COLOR_BLACK);
     print("  clear         ");
     setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
     print("- Clear the screen\n");
@@ -66,7 +74,7 @@ static void cmd_help(void) {
     setcolor(COLOR_YELLOW, COLOR_BLACK);
     print("  run <program> ");
     setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
-    print("- Run a program from /programs/\n");
+    print("- Run a program from /user/\n");
     setcolor(COLOR_YELLOW, COLOR_BLACK);
     print("  version       ");
     setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
@@ -127,6 +135,77 @@ static void cmd_ls(const char *path) {
 }
 
 /**
+ * Built-in: pwd
+ */
+static void cmd_pwd(void) {
+    setcolor(COLOR_WHITE, COLOR_BLACK);
+    print(cwd);
+    setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
+    print("\n");
+}
+
+/**
+ * Built-in: cd
+ */
+static void cmd_cd(const char *path) {
+    char entry[256];
+    char new_path[CMD_MAX_LEN];
+    
+    if (!path || !*path) {
+        /* cd with no args goes to root */
+        strcpy(cwd, "/");
+        return;
+    }
+    
+    /* Handle absolute vs relative paths */
+    if (path[0] == '/') {
+        /* Absolute path */
+        strcpy(new_path, path);
+    } else if (strcmp(path, "..") == 0) {
+        /* Go up one directory */
+        strcpy(new_path, cwd);
+        /* Find last slash */
+        int len = strlen(new_path);
+        if (len > 1) {
+            /* Remove trailing slash if present */
+            if (new_path[len-1] == '/') {
+                new_path[len-1] = '\0';
+                len--;
+            }
+            /* Find previous slash */
+            while (len > 0 && new_path[len-1] != '/') {
+                len--;
+            }
+            if (len == 0) {
+                new_path[0] = '/';
+                len = 1;
+            }
+            new_path[len] = '\0';
+        }
+    } else {
+        /* Relative path */
+        strcpy(new_path, cwd);
+        int len = strlen(new_path);
+        if (len > 1 || new_path[0] != '/') {
+            strcat(new_path, "/");
+        }
+        strcat(new_path, path);
+    }
+    
+    /* Verify directory exists by trying to read it */
+    if (readdir(new_path, 0, entry) >= 0) {
+        strcpy(cwd, new_path);
+    } else {
+        setcolor(COLOR_LIGHT_RED, COLOR_BLACK);
+        print("Directory not found: ");
+        setcolor(COLOR_WHITE, COLOR_BLACK);
+        print(path);
+        setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
+        print("\n");
+    }
+}
+
+/**
  * Built-in: clear
  */
 static void cmd_clear(void) {
@@ -181,7 +260,7 @@ static void cmd_run(const char *name) {
     }
     
     /* Build full path */
-    strcpy(path, "/programs/");
+    strcpy(path, "/user/");
     strcat(path, name);
     
     /* Try to execute */
@@ -221,6 +300,12 @@ static void process_command(char *line) {
     }
     else if (strcmp(cmd, "ls") == 0 || strcmp(cmd, "dir") == 0) {
         cmd_ls(rest);
+    }
+    else if (strcmp(cmd, "pwd") == 0) {
+        cmd_pwd();
+    }
+    else if (strcmp(cmd, "cd") == 0) {
+        cmd_cd(rest);
     }
     else if (strcmp(cmd, "clear") == 0 || strcmp(cmd, "cls") == 0) {
         cmd_clear();

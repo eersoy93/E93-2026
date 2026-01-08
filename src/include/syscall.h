@@ -23,19 +23,22 @@
 #define SYS_SETCOLOR    11  /* Set text color */
 #define SYS_CHDIR       12  /* Change directory (reserved) */
 #define SYS_GETCWD      13  /* Get current directory (reserved) */
-#define SYS_VGA_INIT    14  /* Enter VGA graphics mode */
+#define SYS_VGA_INIT    14  /* Enter VGA graphics mode 12h (640x480x16) */
 #define SYS_VGA_EXIT    15  /* Exit VGA graphics mode */
 #define SYS_VGA_CLEAR   16  /* Clear graphics screen */
 #define SYS_VGA_PIXEL   17  /* Set pixel */
 #define SYS_VGA_LINE    18  /* Draw line */
 #define SYS_VGA_RECT    19  /* Draw rectangle */
 #define SYS_VGA_CIRCLE  20  /* Draw circle */
+#define SYS_VGA_INIT_13H  21  /* Enter VGA graphics mode 13h (320x200x256) */
+#define SYS_VGA_INIT_X    22  /* Enter VGA graphics mode X (320x240x256) */
+#define SYS_VGA_PALETTE   23  /* Set palette entry (r, g, b packed) */
 
 /* System call interrupt number */
 #define SYSCALL_INT     0x80
 
 /* Maximum number of system calls */
-#define NUM_SYSCALLS    24
+#define NUM_SYSCALLS    28
 
 /**
  * Initialize the system call interface

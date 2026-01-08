@@ -118,11 +118,11 @@ void kernel_main(unsigned int magic, unsigned int *mboot_info) {
 
     program_t shell;
     /* Try to load shell from the CD-ROM filesystem */
-    if (loader_load("/programs/shell", &shell) == 0) {
+    if (loader_load("/user/shell", &shell) == 0) {
         loader_exec(&shell);
     } else {
         vga_set_color(VGA_COLOR_ERROR, VGA_COLOR_BLACK);
-        vga_print("Failed to load: /programs/shell\n");
+        vga_print("Failed to load: /user/shell\n");
     }
 
     vga_set_color(VGA_COLOR_INFO, VGA_COLOR_BLACK);
