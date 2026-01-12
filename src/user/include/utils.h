@@ -6,6 +6,9 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include <string.h>
+
+/* UNUSED macro to suppress unused variable warnings */
 #define UNUSED(x) (void)(x)
 
 /**

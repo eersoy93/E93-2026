@@ -16,9 +16,24 @@ A minimal 32-bit operating system kernel that boots via GRUB2 (Multiboot specifi
   - Mode X: 320x240, 256 colors (planar)
   - Mode Y: 320x200, 256 colors (planar)
 - **Userspace Programs** - ELF32 executables loaded from ISO9660 filesystem
-- **Interactive Shell** - Built-in shell with commands (help, ls, cd, run, etc.)
+- **Interactive Shell** - Built-in shell with commands:
+  - `help` - Show available commands
+  - `ls [dir]` - List directory contents
+  - `pwd` - Print working directory
+  - `cd <dir>` - Change directory
+  - `clear` - Clear the screen
+  - `echo <text>` - Print text
+  - `beep` - Play a beep sound
+  - `run <program>` - Run a program
+  - `idedevs` - Show IDE devices
+  - `pcidevs` - Show PCI devices
+  - `version` - Show version information
+  - `exit` - Exit shell and halt system
 - **System Calls** - INT 0x80 based syscall interface
+- **File I/O** - Read files from the ISO9660 filesystem
 - **PC Speaker** - Beep sound support
+- **IDE Controller** - IDE/ATAPI device detection and information
+- **PCI Bus** - PCI device enumeration with pci.ids database lookup
 - **IDE/ISO9660** - Read-only filesystem support
 
 ## Prerequisites
@@ -74,6 +89,8 @@ Quick start:
 2. Edit as needed
 3. Run `make -f Makefile.gcc iso`
 4. In shell: `run myprogram`
+
+For graphics programs, use `sdk/template/graphics_demo.c` as a starting point.
 
 ## Project Structure
 

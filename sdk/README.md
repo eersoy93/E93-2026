@@ -18,28 +18,38 @@ sdk/
 │   ├── graphics.md     # VGA graphics programming guide
 │   └── io.md           # I/O and console programming guide
 └── template/
-    └── program.c       # Template for new programs
+    ├── program.c       # Template for console programs
+    └── graphics_demo.c # Template for graphics programs
 ```
 
 ## Include Files
 
-All headers are in `src/user/include/`:
+All headers are in `src/user/include/`. Headers must be included separately based on what functions you need:
 
 | Header | Description |
 |--------|-------------|
-| `user.h` | Main header - includes everything |
-| `io.h` | Console I/O (print, readline, colors) |
+| `user.h` | Core syscall wrappers (exit, sleep, beep, exec) |
+| `utils.h` | Type definitions, utility functions (isdigit, atoi, etc.) |
+| `io.h` | Console I/O (print, readline, colors) and file I/O |
 | `string.h` | String manipulation functions |
-| `utils.h` | Utility functions (isdigit, atoi, etc.) |
 | `vga_gfx.h` | VGA graphics modes and drawing |
+| `vga_font_user.h` | 8x8 bitmap font for graphics mode |
+| `ide.h` | IDE device information |
+| `pci.h` | PCI device information |
 | `version.h` | OS version information |
+
+**Note:** Include only the headers you need. Common combinations:
+- Console programs: `user.h`, `io.h`
+- Graphics programs: `user.h`, `io.h`, `vga_gfx.h`
+- Full shell-like programs: `user.h`, `io.h`, `string.h`, `utils.h`, `version.h`
 
 ## Program Entry Point
 
 All programs must define a `_start` function as the entry point:
 
 ```c
-#include "user.h"
+#include <user.h>
+#include <io.h>
 
 void _start(void) {
     print("Hello, World!\n");

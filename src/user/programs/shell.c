@@ -12,9 +12,13 @@
  *   exit    - Exit shell (halt system)
  */
 
-#include <user.h>
 #include <ide.h>
+#include <io.h>
 #include <pci.h>
+#include <string.h>
+#include <user.h>
+#include <utils.h>
+#include <version.h>
 
 /* Maximum command line length */
 #define CMD_MAX_LEN     256

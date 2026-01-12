@@ -1,35 +1,16 @@
 /**
  * Userspace Library Header
  * Provides general system call wrappers for userspace programs
- * 
- * This header can be used by C userspace programs
  */
 
 #ifndef USER_H
 #define USER_H
 
-#include <string.h>
-#include <io.h>
-#include <utils.h>
-#include <version.h>
-
-/* Type definitions for userspace */
-typedef unsigned char uint8_t;
-typedef unsigned short uint16_t;
-typedef unsigned int uint32_t;
-typedef int int32_t;
-
 /* System call numbers */
 #define SYS_EXIT    0
-#define SYS_OPEN    3
-#define SYS_CLOSE   4
 #define SYS_SLEEP   5
 #define SYS_BEEP    6
 #define SYS_EXEC    8
-
-/* Boolean */
-#define true    1
-#define false   0
 
 /**
  * Make a system call with up to 3 arguments

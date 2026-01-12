@@ -16,8 +16,9 @@ This guide covers VGA graphics programming for E93-2026 user programs.
 Include the graphics header and initialize your desired mode:
 
 ```c
-#include "user.h"
-#include "vga_gfx.h"
+#include <user.h>
+#include <io.h>
+#include <vga_gfx.h>
 
 void _start(void) {
     /* Initialize graphics mode */

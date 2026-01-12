@@ -8,6 +8,7 @@
  * Entry point: _start at virtual address 0x400000
  */
 
+#include <io.h>
 #include <user.h>
 #include <vga_gfx.h>
 

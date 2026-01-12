@@ -108,18 +108,18 @@ int exec(const char *path);
 ---
 
 ### SYS_READDIR (9)
-Read directory entries.
+Read a directory entry by index.
 
 ```c
-int readdir(const char *path, char *buf, int max_entries);
+int readdir(const char *path, int index, char *buf);
 ```
 
 **Arguments:**
 - `path`: Directory path
-- `buf`: Buffer for entries (32 bytes each)
-- `max_entries`: Maximum entries to read
+- `index`: Entry index (0-based)
+- `buf`: Buffer for entry name (at least 256 bytes)
 
-**Returns:** Number of entries read
+**Returns:** 1 if entry found, 0 if no more entries, -1 on error
 
 ---
 
@@ -146,6 +146,98 @@ void setcolor(int fg, int bg);
 ## VGA Graphics System Calls
 
 See [graphics.md](graphics.md) for detailed VGA programming documentation.
+
+## File I/O System Calls
+
+### SYS_FOPEN (3)
+Open a file for reading.
+
+```c
+int fopen(const char *path);
+```
+
+**Arguments:**
+- `path`: Path to the file
+
+**Returns:** File descriptor (>= 3) on success, -1 on error
+
+---
+
+### SYS_FCLOSE (4)
+Close a file.
+
+```c
+int fclose(int fd);
+```
+
+**Arguments:**
+- `fd`: File descriptor
+
+**Returns:** 0 on success, -1 on error
+
+---
+
+### SYS_FREAD (12)
+Read from a file.
+
+```c
+int fread(int fd, char *buf, int size);
+```
+
+**Arguments:**
+- `fd`: File descriptor
+- `buf`: Buffer to read into
+- `size`: Number of bytes to read
+
+**Returns:** Number of bytes read, -1 on error
+
+---
+
+### SYS_FSIZE (13)
+Get file size.
+
+```c
+int fsize(int fd);
+```
+
+**Arguments:**
+- `fd`: File descriptor
+
+**Returns:** File size in bytes, -1 on error
+
+## Hardware Information System Calls
+
+### SYS_IDEINFO (25)
+Get IDE device information.
+
+```c
+int ide_get_drive_count(void);  /* pass drive=0xFF */
+int ide_get_device_info(int drive, ide_device_info_t *info);
+```
+
+**Arguments:**
+- `drive`: Drive number (0-3) or 0xFF to get count
+- `info`: Pointer to ide_device_info_t structure
+
+**Returns:** Device count or 0 on success, -1 if not present
+
+---
+
+### SYS_PCIINFO (26)
+Get PCI device information.
+
+```c
+int pci_get_device_count(void);  /* pass index=0xFF */
+int pci_get_device_info(int index, pci_device_info_t *info);
+```
+
+**Arguments:**
+- `index`: Device index or 0xFF to get count
+- `info`: Pointer to pci_device_info_t structure
+
+**Returns:** Device count or 0 on success, -1 if not found
+
+## VGA Graphics System Calls (Detail)
 
 ### SYS_VGA_INIT (14)
 Initialize VGA mode 12h (640x480, 16 colors).

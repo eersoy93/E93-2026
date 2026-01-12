@@ -7,8 +7,9 @@
  * Entry point: _start at virtual address 0x400000
  */
 
-#include "user.h"
-#include "vga_gfx.h"
+#include <io.h>
+#include <user.h>
+#include <vga_gfx.h>
 
 /**
  * Set up a colorful gradient palette

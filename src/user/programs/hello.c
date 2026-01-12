@@ -7,6 +7,7 @@
  */
 
 #include <user.h>
+#include <io.h>
 
 /* Program entry point */
 void _start(void) {

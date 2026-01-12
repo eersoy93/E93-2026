@@ -10,10 +10,12 @@
  * Entry point: _start at virtual address 0x400000
  */
 
-#include "user.h"
+#include <user.h>
+#include <io.h>
+#include <version.h>
 
 /* Uncomment if using graphics */
-/* #include "vga_gfx.h" */
+/* #include <vga_gfx.h> */
 
 /**
  * Program entry point

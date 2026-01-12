@@ -8,8 +8,9 @@
  * Run with:   make run
  */
 
-#include "user.h"
-#include "vga_gfx.h"
+#include <user.h>
+#include <io.h>
+#include <vga_gfx.h>
 
 /**
  * Set up a rainbow palette for 256-color modes

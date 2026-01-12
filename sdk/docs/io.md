@@ -7,7 +7,8 @@ This guide covers console input/output programming for E93-2026 user programs.
 ### Print String
 
 ```c
-#include "user.h"
+#include <user.h>
+#include <io.h>
 
 void _start(void) {
     print("Hello, World!\n");
@@ -129,12 +130,13 @@ setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);  /* Reset to default */
 ### List Directory Contents
 
 ```c
-char entries[32 * 16];  /* 16 entries, 32 bytes each */
-int count = readdir("/user", entries, 16);
+char entry[256];
+int i = 0;
 
-for (int i = 0; i < count; i++) {
-    print(entries + (i * 32));
+while (readdir("/user", i, entry) > 0) {
+    print(entry);
     print("\n");
+    i++;
 }
 ```
 
@@ -148,6 +150,35 @@ if (result < 0) {
     print("Failed to execute program\n");
 }
 /* If exec succeeds, this code never runs */
+```
+
+## File I/O
+
+### Open, Read, and Close a File
+
+```c
+int fd = fopen("/media/pci.ids");
+if (fd < 0) {
+    print("Failed to open file\n");
+} else {
+    int size = fsize(fd);
+    char buf[1024];
+    int bytes = fread(fd, buf, sizeof(buf) - 1);
+    buf[bytes] = '\0';
+    print(buf);
+    fclose(fd);
+}
+```
+
+### Convenience Function
+
+```c
+char buf[4096];
+int bytes = read_file("/media/pci.ids", buf, sizeof(buf));
+if (bytes > 0) {
+    buf[bytes] = '\0';
+    print(buf);
+}
 ```
 
 ## Timing
@@ -233,10 +264,55 @@ int n = parse_int("0xFF");  /* Hex prefix */
 int n = parse_int("123");   /* Decimal */
 ```
 
+## Hardware Information
+
+### IDE Devices
+
+```c
+#include <ide.h>
+
+/* Get number of IDE drives */
+int count = ide_get_drive_count();
+
+/* Get information about each drive */
+ide_device_info_t info;
+for (int i = 0; i < count; i++) {
+    if (ide_get_device_info(i, &info) == 0) {
+        print("Drive: ");
+        print(info.model);
+        print("\n");
+    }
+}
+```
+
+### PCI Devices
+
+```c
+#include <pci.h>
+
+/* Get number of PCI devices */
+int count = pci_get_device_count();
+
+/* Get information about each device */
+pci_device_info_t info;
+for (int i = 0; i < count; i++) {
+    if (pci_get_device_info(i, &info) == 0) {
+        print("Device: ");
+        print(pci_class_name(info.class_code));
+        print("\n");
+    }
+}
+
+/* Look up device names from pci.ids file */
+char vendor_name[64], device_name[64];
+pci_lookup_ids(info.vendor_id, info.device_id, vendor_name, device_name, sizeof(vendor_name));
+```
+
 ## Example: Interactive Program
 
 ```c
-#include "user.h"
+#include <user.h>
+#include <io.h>
 
 void _start(void) {
     char name[64];
