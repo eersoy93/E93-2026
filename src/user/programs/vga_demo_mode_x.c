@@ -83,6 +83,21 @@ static void setup_rainbow_palette(void) {
 }
 
 /**
+ * Draw a plasma-like pattern
+ */
+static void draw_plasma(void) {
+    int x, y;
+    
+    for (y = 0; y < GFX_HEIGHT_X; y++) {
+        for (x = 0; x < GFX_WIDTH_X; x++) {
+            /* Simple plasma-like calculation */
+            int color = (x + y + (x * y / 64)) & 0xFF;
+            gfx_pixel(x, y, color);
+        }
+    }
+}
+
+/**
  * Draw concentric circles
  */
 static void draw_circles(void) {
@@ -150,6 +165,12 @@ void _start(void) {
     
     /* Draw gradient */
     draw_gradient();
+    
+    /* Wait for keypress */
+    getchar();
+    
+    /* Draw plasma pattern */
+    draw_plasma();
     
     /* Wait for keypress */
     getchar();

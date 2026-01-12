@@ -98,6 +98,27 @@ static void draw_plasma(void) {
 }
 
 /**
+ * Draw concentric circles
+ */
+static void draw_circles(void) {
+    int cx = GFX_WIDTH_13H / 2;
+    int cy = GFX_HEIGHT_13H / 2;
+    int x, y;
+    
+    for (y = 0; y < GFX_HEIGHT_13H; y++) {
+        for (x = 0; x < GFX_WIDTH_13H; x++) {
+            int dx = x - cx;
+            int dy = y - cy;
+            /* Approximate distance (no sqrt needed) */
+            int dist = dx * dx + dy * dy;
+            /* Use distance to determine color */
+            int color = (dist / 32) & 0xFF;
+            gfx_pixel(x, y, color);
+        }
+    }
+}
+
+/**
  * Draw color bars
  */
 static void draw_color_bars(void) {
@@ -150,6 +171,12 @@ void _start(void) {
     
     /* Draw plasma pattern */
     draw_plasma();
+    
+    /* Wait for keypress */
+    getchar();
+    
+    /* Draw concentric circles */
+    draw_circles();
     
     /* Wait for keypress */
     getchar();
