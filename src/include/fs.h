@@ -11,7 +11,7 @@
 
 /* Maximum path length */
 #define FS_MAX_PATH     256
-#define FS_MAX_NAME     128
+#define FS_MAX_NAME     256     /* Supports Rock Ridge long filenames */
 
 /* File types */
 #define FS_FILE         0x01

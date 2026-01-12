@@ -28,6 +28,48 @@
 #define ISO9660_FLAG_PERMS      0x10    /* Permissions in extended attr */
 #define ISO9660_FLAG_NOTFINAL   0x80    /* Not the final directory entry */
 
+/* Rock Ridge extension signatures */
+#define RRIP_SIG_SP         0x5350      /* "SP" - SUSP indicator */
+#define RRIP_SIG_RR         0x5252      /* "RR" - Rock Ridge extensions */
+#define RRIP_SIG_NM         0x4E4D      /* "NM" - Alternate name */
+#define RRIP_SIG_PX         0x5058      /* "PX" - POSIX file attributes */
+#define RRIP_SIG_CE         0x4345      /* "CE" - Continuation area */
+#define RRIP_SIG_ER         0x4552      /* "ER" - Extensions reference */
+
+/* Rock Ridge NM flags */
+#define RRIP_NM_CONTINUE    0x01        /* Name continues in next NM entry */
+#define RRIP_NM_CURRENT     0x02        /* Current directory (.) */
+#define RRIP_NM_PARENT      0x04        /* Parent directory (..) */
+
+/* System Use Entry header (common to all SUSP/Rock Ridge entries) */
+typedef struct {
+    uint8_t  signature[2];      /* Two-character signature (e.g., "NM") */
+    uint8_t  length;            /* Length of this entry */
+    uint8_t  version;           /* Entry version (usually 1) */
+} __attribute__((packed)) susp_entry_t;
+
+/* Rock Ridge NM (Alternate Name) entry */
+typedef struct {
+    uint8_t  signature[2];      /* "NM" */
+    uint8_t  length;            /* Length of this entry */
+    uint8_t  version;           /* Version (1) */
+    uint8_t  flags;             /* NM flags */
+    char     name[1];           /* Name content (variable length) */
+} __attribute__((packed)) rrip_nm_t;
+
+/* Rock Ridge CE (Continuation Entry) */
+typedef struct {
+    uint8_t  signature[2];      /* "CE" */
+    uint8_t  length;            /* Length (28) */
+    uint8_t  version;           /* Version (1) */
+    uint32_t block_le;          /* Continuation block location - LE */
+    uint32_t block_be;          /* Continuation block location - BE */
+    uint32_t offset_le;         /* Offset within block - LE */
+    uint32_t offset_be;         /* Offset within block - BE */
+    uint32_t cont_length_le;    /* Continuation length - LE */
+    uint32_t cont_length_be;    /* Continuation length - BE */
+} __attribute__((packed)) rrip_ce_t;
+
 /* ISO9660 date/time structure (7 bytes) */
 typedef struct {
     uint8_t years_since_1900;
@@ -106,6 +148,11 @@ typedef struct {
     uint32_t    root_size;      /* Root directory size */
     uint16_t    block_size;     /* Logical block size */
     char        volume_id[33];  /* Volume identifier */
+    uint8_t     has_rock_ridge; /* Rock Ridge extensions detected */
+    uint8_t     susp_skip;      /* Bytes to skip in System Use area */
+    uint8_t     has_joliet;     /* Joliet extensions detected */
+    uint32_t    joliet_root_lba;/* Joliet root directory LBA */
+    uint32_t    joliet_root_size;/* Joliet root directory size */
 } iso9660_fs_t;
 
 /* ISO9660 file private data */
@@ -135,5 +182,11 @@ fs_node_t *iso9660_mount(uint8_t drive);
  * @return 0 on success, error code on failure
  */
 int iso9660_unmount(fs_node_t *root);
+
+/**
+ * Check if Rock Ridge extensions are available on mounted filesystem
+ * @return 1 if Rock Ridge is supported, 0 otherwise
+ */
+int iso9660_has_rock_ridge(void);
 
 #endif /* ISO9660_H */
