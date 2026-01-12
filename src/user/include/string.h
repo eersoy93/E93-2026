@@ -160,4 +160,77 @@ static inline int memcmp(const void *s1, const void *s2, size_t n) {
     return 0;
 }
 
+/**
+ * Find substring in string
+ * @return pointer to first occurrence, or NULL if not found
+ */
+static inline char *strstr(const char *haystack, const char *needle) {
+    size_t needle_len;
+    if (!*needle) return (char *)haystack;
+    needle_len = strlen(needle);
+    while (*haystack) {
+        if (strncmp(haystack, needle, needle_len) == 0) {
+            return (char *)haystack;
+        }
+        haystack++;
+    }
+    return (char *)0;
+}
+
+/**
+ * Duplicate a string (static buffer, not thread-safe)
+ * @param s: String to duplicate
+ * @return: Pointer to duplicate (static buffer)
+ * Note: Returns pointer to internal buffer, overwritten on next call
+ */
+static inline char *strdup_static(const char *s) {
+    static char buf[256];
+    size_t len = strlen(s);
+    if (len >= sizeof(buf)) len = sizeof(buf) - 1;
+    memcpy(buf, s, len);
+    buf[len] = '\0';
+    return buf;
+}
+
+/**
+ * Calculate string span (characters in accept)
+ * @return length of initial segment containing only chars from accept
+ */
+static inline size_t strspn(const char *s, const char *accept) {
+    size_t count = 0;
+    while (*s) {
+        const char *a = accept;
+        int found = 0;
+        while (*a) {
+            if (*s == *a) {
+                found = 1;
+                break;
+            }
+            a++;
+        }
+        if (!found) break;
+        count++;
+        s++;
+    }
+    return count;
+}
+
+/**
+ * Calculate string complement span (characters not in reject)
+ * @return length of initial segment containing no chars from reject
+ */
+static inline size_t strcspn(const char *s, const char *reject) {
+    size_t count = 0;
+    while (*s) {
+        const char *r = reject;
+        while (*r) {
+            if (*s == *r) return count;
+            r++;
+        }
+        count++;
+        s++;
+    }
+    return count;
+}
+
 #endif /* STRING_H */

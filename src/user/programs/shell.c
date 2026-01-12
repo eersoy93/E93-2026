@@ -138,10 +138,8 @@ static void cmd_ls(const char *path) {
  * Built-in: pwd
  */
 static void cmd_pwd(void) {
-    setcolor(COLOR_WHITE, COLOR_BLACK);
-    print(cwd);
-    setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
-    print("\n");
+    print_color(cwd, COLOR_WHITE, COLOR_BLACK);
+    newline();
 }
 
 /**
@@ -196,12 +194,8 @@ static void cmd_cd(const char *path) {
     if (readdir(new_path, 0, entry) >= 0) {
         strcpy(cwd, new_path);
     } else {
-        setcolor(COLOR_LIGHT_RED, COLOR_BLACK);
-        print("Directory not found: ");
-        setcolor(COLOR_WHITE, COLOR_BLACK);
-        print(path);
-        setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
-        print("\n");
+        print_error("Directory not found: ");
+        println(path);
     }
 }
 
@@ -217,9 +211,10 @@ static void cmd_clear(void) {
  */
 static void cmd_echo(const char *text) {
     if (text && *text) {
-        print(text);
+        println(text);
+    } else {
+        newline();
     }
-    print("\n");
 }
 
 /**
@@ -253,9 +248,7 @@ static void cmd_run(const char *name) {
     char path[CMD_MAX_LEN];
     
     if (!name || !*name) {
-        setcolor(COLOR_LIGHT_RED, COLOR_BLACK);
-        print("Usage: run <program>\n");
-        setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
+        print_error("Usage: run <program>\n");
         return;
     }
     
@@ -265,12 +258,8 @@ static void cmd_run(const char *name) {
     
     /* Try to execute */
     if (exec(path) < 0) {
-        setcolor(COLOR_LIGHT_RED, COLOR_BLACK);
-        print("Program not found: ");
-        setcolor(COLOR_WHITE, COLOR_BLACK);
-        print(name);
-        setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
-        print("\n");
+        print_error("Program not found: ");
+        println(name);
     }
 }
 
@@ -323,16 +312,13 @@ static void process_command(char *line) {
         cmd_run(rest);
     }
     else if (strcmp(cmd, "exit") == 0 || strcmp(cmd, "quit") == 0) {
-        print("Goodbye!\n");
+        println("Goodbye!");
         exit(0);
     }
     else {
-        setcolor(COLOR_LIGHT_RED, COLOR_BLACK);
-        print("Unknown command: ");
-        setcolor(COLOR_WHITE, COLOR_BLACK);
-        print(cmd);
-        setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
-        print("\nType 'help' for available commands.\n");
+        print_error("Unknown command: ");
+        println(cmd);
+        println("Type 'help' for available commands.");
     }
 }
 

@@ -11,15 +11,15 @@
 /* Program entry point */
 void _start(void) {
     /* Print Hello message */
-    print("Hello from userspace!\n");
+    println("Hello from userspace!");
 
     /* Play a success beep */
     beep(1000, 100);
 
     /* Wait for user input before exiting */
-    print("Press any key to continue...\n");
+    println("Press any key to continue...");
     getchar();
-    print("Exiting now...\n");
+    println("Exiting now...");
 
     /* Exit cleanly */
     exit(0);

@@ -198,4 +198,54 @@ static inline void print_hex(unsigned int n) {
     while (i > 0) putchar(buf[--i]);
 }
 
+/**
+ * Print a string followed by newline
+ * @param str: String to print
+ * @return: Number of bytes written
+ */
+static inline int println(const char *str) {
+    int ret = print(str);
+    putchar('\n');
+    return ret + 1;
+}
+
+/**
+ * Print a newline
+ */
+static inline void newline(void) {
+    putchar('\n');
+}
+
+/**
+ * Print an error message in red
+ * @param str: Error message
+ */
+static inline void print_error(const char *str) {
+    print_color(str, COLOR_ERROR, COLOR_BLACK);
+}
+
+/**
+ * Print a success message in green
+ * @param str: Success message
+ */
+static inline void print_success(const char *str) {
+    print_color(str, COLOR_SUCCESS, COLOR_BLACK);
+}
+
+/**
+ * Print a warning message in yellow
+ * @param str: Warning message
+ */
+static inline void print_warning(const char *str) {
+    print_color(str, COLOR_WARNING, COLOR_BLACK);
+}
+
+/**
+ * Print an info message in cyan
+ * @param str: Info message
+ */
+static inline void print_info(const char *str) {
+    print_color(str, COLOR_INFO, COLOR_BLACK);
+}
+
 #endif /* IO_H */
