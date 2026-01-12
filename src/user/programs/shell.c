@@ -13,6 +13,8 @@
  */
 
 #include <user.h>
+#include <ide.h>
+#include <pci.h>
 
 /* Maximum command line length */
 #define CMD_MAX_LEN     256
@@ -75,6 +77,14 @@ static void cmd_help(void) {
     print("  run <program> ");
     setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
     print("- Run a program from /user/\n");
+    setcolor(COLOR_YELLOW, COLOR_BLACK);
+    print("  idedevs       ");
+    setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
+    print("- Show IDE devices\n");
+    setcolor(COLOR_YELLOW, COLOR_BLACK);
+    print("  pcidevs       ");
+    setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
+    print("- Show PCI devices\n");
     setcolor(COLOR_YELLOW, COLOR_BLACK);
     print("  version       ");
     setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
@@ -242,6 +252,164 @@ static void cmd_version(void) {
 }
 
 /**
+ * Built-in: idedevs
+ */
+static void cmd_idedevs(void) {
+    ide_device_info_t info;
+    int count = ide_get_drive_count();
+    
+    print("\n");
+    setcolor(COLOR_LIGHT_CYAN, COLOR_BLACK);
+    print("IDE Devices:\n");
+    print("------------\n");
+    setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
+    
+    for (int i = 0; i < 4; i++) {
+        print("  Drive ");
+        putchar('0' + i);
+        print(": ");
+        
+        if (ide_get_device_info(i, &info) < 0 || !info.present) {
+            setcolor(COLOR_DARK_GREY, COLOR_BLACK);
+            print("None\n");
+            setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
+            continue;
+        }
+        
+        /* Print device type */
+        setcolor(COLOR_YELLOW, COLOR_BLACK);
+        if (info.type == IDE_TYPE_ATA) {
+            print("[ATA]   ");
+        } else if (info.type == IDE_TYPE_ATAPI) {
+            print("[ATAPI] ");
+        } else {
+            print("[???]   ");
+        }
+        
+        /* Print model */
+        setcolor(COLOR_WHITE, COLOR_BLACK);
+        print(info.model);
+        
+        /* Print size in MB */
+        if (info.size > 0) {
+            unsigned int size_mb;
+            if (info.type == IDE_TYPE_ATA) {
+                /* ATA: 512-byte sectors */
+                size_mb = info.size / 2048;
+            } else {
+                /* ATAPI: 2048-byte sectors */
+                size_mb = info.size / 512;
+            }
+            
+            setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
+            print(" (");
+            print_int(size_mb);
+            print(" MB)");
+        }
+        
+        /* Print channel/drive info */
+        setcolor(COLOR_DARK_GREY, COLOR_BLACK);
+        print(" [");
+        print(info.channel == 0 ? "Primary" : "Secondary");
+        print(" ");
+        print(info.drive == 0 ? "Master" : "Slave");
+        print("]");
+        
+        setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
+        print("\n");
+    }
+    
+    print("\n");
+    setcolor(COLOR_DARK_GREY, COLOR_BLACK);
+    print_int(count);
+    print(" drive(s) detected\n");
+    setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
+    print("\n");
+}
+
+/**
+ * Built-in: pcidevs
+ */
+static void cmd_pcidevs(void) {
+    pci_device_info_t info;
+    int count = pci_get_device_count();
+    char vendor_name[64];
+    char device_name[64];
+    
+    print("\n");
+    setcolor(COLOR_LIGHT_CYAN, COLOR_BLACK);
+    print("PCI Devices:\n");
+    print("------------\n");
+    setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
+    
+    if (count == 0) {
+        setcolor(COLOR_DARK_GREY, COLOR_BLACK);
+        print("  No PCI devices found\n");
+        setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
+    } else {
+        for (int i = 0; i < count; i++) {
+            if (pci_get_device_info(i, &info) < 0 || !info.present) {
+                continue;
+            }
+            
+            /* Print bus:device.function */
+            print("  ");
+            setcolor(COLOR_DARK_GREY, COLOR_BLACK);
+            print_int(info.bus);
+            print(":");
+            print_int(info.device);
+            print(".");
+            print_int(info.function);
+            print(" ");
+            
+            /* Print vendor:device IDs */
+            setcolor(COLOR_YELLOW, COLOR_BLACK);
+            print_hex16(info.vendor_id);
+            print(":");
+            print_hex16(info.device_id);
+            print(" ");
+            
+            /* Print class */
+            setcolor(COLOR_LIGHT_CYAN, COLOR_BLACK);
+            print("[");
+            print(pci_class_name(info.class_code));
+            print("]");
+            
+            /* Look up vendor and device names */
+            int has_vendor = pci_lookup_vendor(info.vendor_id, vendor_name);
+            int has_device = pci_lookup_device(info.vendor_id, info.device_id, device_name);
+            
+            /* Print full device name on next line */
+            if (has_vendor || has_device) {
+                print("\n       ");
+                if (has_vendor) {
+                    setcolor(COLOR_WHITE, COLOR_BLACK);
+                    print(vendor_name);
+                }
+                if (has_device) {
+                    if (has_vendor) {
+                        setcolor(COLOR_DARK_GREY, COLOR_BLACK);
+                        print(" - ");
+                    }
+                    setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
+                    print(device_name);
+                }
+            }
+            
+            setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
+            print("\n");
+        }
+    }
+    
+    print("\n");
+    setcolor(COLOR_DARK_GREY, COLOR_BLACK);
+    print_int(count);
+    print(" device(s) detected\n");
+    setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
+    print("\n");
+}
+
+/**
  * Built-in: run
  */
 static void cmd_run(const char *name) {
@@ -307,6 +475,12 @@ static void process_command(char *line) {
     }
     else if (strcmp(cmd, "version") == 0 || strcmp(cmd, "ver") == 0) {
         cmd_version();
+    }
+    else if (strcmp(cmd, "idedevs") == 0) {
+        cmd_idedevs();
+    }
+    else if (strcmp(cmd, "pcidevs") == 0) {
+        cmd_pcidevs();
     }
     else if (strcmp(cmd, "run") == 0) {
         cmd_run(rest);

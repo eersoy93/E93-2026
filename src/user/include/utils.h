@@ -6,6 +6,8 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#define UNUSED(x) (void)(x)
+
 /**
  * Check if character is whitespace
  */
@@ -18,6 +20,43 @@ static inline int isspace(int c) {
  */
 static inline int isdigit(int c) {
     return c >= '0' && c <= '9';
+}
+
+/**
+ * Check if character is a hexadecimal digit
+ */
+static inline int isxdigit(int c) {
+    return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+}
+
+/**
+ * Convert hex character to its numeric value
+ * @param c: Hex character ('0'-'9', 'a'-'f', 'A'-'F')
+ * @return: Numeric value (0-15), or 0 if invalid
+ */
+static inline int hex_char_value(int c) {
+    if (c >= '0' && c <= '9') return c - '0';
+    if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+    if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+    return 0;
+}
+
+/**
+ * Compare 4 hex digits from string against a value (case-insensitive)
+ * @param str: String containing hex digits
+ * @param val: 16-bit value to compare against
+ * @return: 1 if match, 0 if no match
+ */
+static inline int match_hex4(const char *str, unsigned short val) {
+    if (!isxdigit(str[0]) || !isxdigit(str[1]) ||
+        !isxdigit(str[2]) || !isxdigit(str[3])) {
+        return 0;
+    }
+    unsigned short file_val = (hex_char_value(str[0]) << 12) |
+                              (hex_char_value(str[1]) << 8) |
+                              (hex_char_value(str[2]) << 4) |
+                              hex_char_value(str[3]);
+    return file_val == val;
 }
 
 /**

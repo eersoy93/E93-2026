@@ -86,11 +86,13 @@ iso: $(ISO)
 $(ISO): $(KERNEL) grub.cfg $(USER_PROGRAMS)
 	@mkdir -p $(ISO_DIR)/boot/grub
 	@mkdir -p $(ISO_DIR)/user
+	@mkdir -p $(ISO_DIR)/media
 	cp $(KERNEL) $(ISO_DIR)/boot/kernel.bin
 	cp grub.cfg $(ISO_DIR)/boot/grub/grub.cfg
 	@for prog in $(USER_PROGRAMS); do \
 		if [ -f "$$prog" ]; then cp "$$prog" $(ISO_DIR)/user/; fi; \
 	done
+	@if [ -d "media" ]; then cp -r media/* $(ISO_DIR)/media/ 2>/dev/null || true; fi
 	grub-mkrescue -o $@ $(ISO_DIR)
 	@echo "ISO built: $@"
 

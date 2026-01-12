@@ -4,9 +4,11 @@
  */
 
 #include <fs.h>
+#include <ide.h>
 #include <idt.h>
 #include <keyboard.h>
 #include <loader.h>
+#include <pci.h>
 #include <pit.h>
 #include <speaker.h>
 #include <string.h>
@@ -39,14 +41,29 @@ static int sys_vga_init_13h(uint32_t unused1, uint32_t unused2, uint32_t unused3
 static int sys_vga_init_x(uint32_t unused1, uint32_t unused2, uint32_t unused3);
 static int sys_vga_init_y(uint32_t unused1, uint32_t unused2, uint32_t unused3);
 static int sys_vga_palette(uint32_t index, uint32_t rgb, uint32_t unused);
+static int sys_ideinfo(uint32_t drive, uint32_t buf, uint32_t unused);
+static int sys_pciinfo(uint32_t index, uint32_t buf, uint32_t unused);
+static int sys_fopen(uint32_t path, uint32_t unused1, uint32_t unused2);
+static int sys_fclose(uint32_t fd, uint32_t unused1, uint32_t unused2);
+static int sys_fread(uint32_t fd, uint32_t buf, uint32_t size);
+static int sys_fsize(uint32_t fd, uint32_t unused1, uint32_t unused2);
+
+/* Maximum open files */
+#define MAX_OPEN_FILES  16
+
+/* File descriptor table */
+static struct {
+    fs_node_t *node;    /* File node or NULL if slot is free */
+    uint32_t offset;    /* Current read/write position */
+} open_files[MAX_OPEN_FILES];
 
 /* System call table */
 static syscall_fn syscall_table[NUM_SYSCALLS] = {
     [SYS_EXIT]    = sys_exit,
     [SYS_WRITE]   = sys_write,
     [SYS_READ]    = sys_read,
-    [SYS_OPEN]    = NULL,       /* Reserved */
-    [SYS_CLOSE]   = NULL,       /* Reserved */
+    [SYS_FOPEN]   = sys_fopen,
+    [SYS_FCLOSE]  = sys_fclose,
     [SYS_SLEEP]   = sys_sleep,
     [SYS_BEEP]    = sys_beep,
     [SYS_GETCHAR] = sys_getchar,
@@ -54,6 +71,8 @@ static syscall_fn syscall_table[NUM_SYSCALLS] = {
     [SYS_READDIR] = sys_readdir,
     [SYS_CLEAR]   = sys_clear,
     [SYS_SETCOLOR] = sys_setcolor,
+    [SYS_FREAD]   = sys_fread,
+    [SYS_FSIZE]   = sys_fsize,
     [SYS_VGA_INIT]    = sys_vga_init,
     [SYS_VGA_EXIT]    = sys_vga_exit,
     [SYS_VGA_CLEAR]   = sys_vga_clear,
@@ -65,6 +84,8 @@ static syscall_fn syscall_table[NUM_SYSCALLS] = {
     [SYS_VGA_INIT_X]   = sys_vga_init_x,
     [SYS_VGA_PALETTE]  = sys_vga_palette,
     [SYS_VGA_INIT_Y]   = sys_vga_init_y,
+    [SYS_IDEINFO]      = sys_ideinfo,
+    [SYS_PCIINFO]      = sys_pciinfo,
 };
 
 /**
@@ -419,6 +440,228 @@ static int sys_vga_palette(uint32_t index, uint32_t rgb, uint32_t unused) {
     
     vga_set_palette((uint8_t)index, r, g, b);
     return 0;
+}
+
+/**
+ * SYS_IDEINFO - Get IDE device information
+ * @param drive: Drive number (0-3), or 0xFF to get drive count
+ * @param buf: Buffer to store ide_device_info_t structure
+ * @return: 0 on success, -1 if device not present, or drive count if drive==0xFF
+ */
+static int sys_ideinfo(uint32_t drive, uint32_t buf, uint32_t unused) {
+    (void)unused;
+    
+    /* Special case: get drive count */
+    if (drive == 0xFF) {
+        return ide_get_drive_count();
+    }
+    
+    /* Get device info */
+    ide_device_t *dev = ide_get_device((uint8_t)drive);
+    if (!dev) {
+        return -1;
+    }
+    
+    /* Copy device info to user buffer */
+    /* Structure layout expected by userspace:
+     * uint8_t present, channel, drive, type
+     * uint32_t size
+     * char model[41]
+     */
+    uint8_t *ubuf = (uint8_t *)buf;
+    ubuf[0] = dev->present;
+    ubuf[1] = dev->channel;
+    ubuf[2] = dev->drive;
+    ubuf[3] = dev->type;
+    
+    /* Copy size (4 bytes at offset 4) */
+    uint32_t *size_ptr = (uint32_t *)(ubuf + 4);
+    *size_ptr = dev->size;
+    
+    /* Copy model string (offset 8, 41 bytes) */
+    strncpy((char *)(ubuf + 8), dev->model, 40);
+    ubuf[48] = '\0';
+    
+    return 0;
+}
+
+/**
+ * SYS_PCIINFO - Get PCI device information
+ * @param index: Device index (0-63), or 0xFF to get device count
+ * @param buf: Buffer to store pci_device_info_t structure
+ * @return: 0 on success, -1 if device not found, or device count if index==0xFF
+ */
+static int sys_pciinfo(uint32_t index, uint32_t buf, uint32_t unused) {
+    (void)unused;
+    
+    /* Special case: get device count */
+    if (index == 0xFF) {
+        return pci_get_device_count();
+    }
+    
+    /* Get device info */
+    pci_device_t *dev = pci_get_device((uint8_t)index);
+    if (!dev) {
+        return -1;
+    }
+    
+    /* Copy device info to user buffer */
+    /* Structure layout expected by userspace:
+     * uint8_t bus, device, function, present
+     * uint16_t vendor_id, device_id
+     * uint8_t class_code, subclass, prog_if, revision
+     * uint8_t header_type, irq
+     */
+    uint8_t *ubuf = (uint8_t *)buf;
+    ubuf[0] = dev->bus;
+    ubuf[1] = dev->device;
+    ubuf[2] = dev->function;
+    ubuf[3] = dev->present;
+    
+    /* Copy vendor_id and device_id (offset 4, 4 bytes total) */
+    uint16_t *id_ptr = (uint16_t *)(ubuf + 4);
+    id_ptr[0] = dev->vendor_id;
+    id_ptr[1] = dev->device_id;
+    
+    /* Copy class info (offset 8, 4 bytes) */
+    ubuf[8] = dev->class_code;
+    ubuf[9] = dev->subclass;
+    ubuf[10] = dev->prog_if;
+    ubuf[11] = dev->revision;
+    
+    /* Copy header_type and irq (offset 12, 2 bytes) */
+    ubuf[12] = dev->header_type;
+    ubuf[13] = dev->irq;
+    
+    return 0;
+}
+
+/**
+ * SYS_FOPEN - Open a file
+ * @param path: Path to the file
+ * @return: File descriptor (3+) on success, -1 on error
+ */
+static int sys_fopen(uint32_t path, uint32_t unused1, uint32_t unused2) {
+    (void)unused1;
+    (void)unused2;
+    
+    const char *file_path = (const char *)path;
+    
+    /* Find a free file descriptor (start at 3, 0-2 are stdin/stdout/stderr) */
+    int fd = -1;
+    for (int i = 0; i < MAX_OPEN_FILES; i++) {
+        if (open_files[i].node == NULL) {
+            fd = i + 3;  /* File descriptors start at 3 */
+            break;
+        }
+    }
+    
+    if (fd < 0) {
+        return -1;  /* No free file descriptors */
+    }
+    
+    /* Resolve path to node */
+    fs_node_t *node = fs_namei(file_path);
+    if (!node) {
+        return -1;  /* File not found */
+    }
+    
+    /* Check if it's a file (not a directory) */
+    if (node->flags & FS_DIRECTORY) {
+        return -1;  /* Cannot open directories with fopen */
+    }
+    
+    /* Open the file */
+    fs_open(node);
+    
+    /* Store in file descriptor table */
+    int idx = fd - 3;
+    open_files[idx].node = node;
+    open_files[idx].offset = 0;
+    
+    return fd;
+}
+
+/**
+ * SYS_FCLOSE - Close a file
+ * @param fd: File descriptor
+ * @return: 0 on success, -1 on error
+ */
+static int sys_fclose(uint32_t fd, uint32_t unused1, uint32_t unused2) {
+    (void)unused1;
+    (void)unused2;
+    
+    /* Validate file descriptor */
+    if (fd < 3 || fd >= 3 + MAX_OPEN_FILES) {
+        return -1;
+    }
+    
+    int idx = fd - 3;
+    if (open_files[idx].node == NULL) {
+        return -1;  /* Not open */
+    }
+    
+    /* Close the file */
+    fs_close(open_files[idx].node);
+    
+    /* Clear the slot */
+    open_files[idx].node = NULL;
+    open_files[idx].offset = 0;
+    
+    return 0;
+}
+
+/**
+ * SYS_FREAD - Read from a file
+ * @param fd: File descriptor
+ * @param buf: Buffer to read into
+ * @param size: Number of bytes to read
+ * @return: Number of bytes read, or -1 on error
+ */
+static int sys_fread(uint32_t fd, uint32_t buf, uint32_t size) {
+    /* Validate file descriptor */
+    if (fd < 3 || fd >= 3 + MAX_OPEN_FILES) {
+        return -1;
+    }
+    
+    int idx = fd - 3;
+    if (open_files[idx].node == NULL) {
+        return -1;  /* Not open */
+    }
+    
+    fs_node_t *node = open_files[idx].node;
+    uint8_t *buffer = (uint8_t *)buf;
+    
+    /* Read from current offset */
+    int bytes_read = fs_read(node, open_files[idx].offset, size, buffer);
+    
+    if (bytes_read > 0) {
+        open_files[idx].offset += bytes_read;
+    }
+    
+    return bytes_read;
+}
+
+/**
+ * SYS_FSIZE - Get file size
+ * @param fd: File descriptor
+ * @return: File size in bytes, or -1 on error
+ */
+static int sys_fsize(uint32_t fd, uint32_t unused1, uint32_t unused2) {
+    (void)unused1;
+    (void)unused2;
+    
+    /* Validate file descriptor */
+    if (fd < 3 || fd >= 3 + MAX_OPEN_FILES) {
+        return -1;
+    }
+    
+    int idx = fd - 3;
+    if (open_files[idx].node == NULL) {
+        return -1;  /* Not open */
+    }
+    
+    return (int)open_files[idx].node->length;
 }
 
 /**

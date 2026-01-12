@@ -10,6 +10,7 @@
 #include <kernel.h>
 #include <keyboard.h>
 #include <loader.h>
+#include <pci.h>
 #include <pit.h>
 #include <speaker.h>
 #include <string.h>
@@ -62,6 +63,17 @@ void kernel_main(unsigned int magic, unsigned int *mboot_info) {
     /* Initialize PC speaker */
     vga_print("Initializing PC Speaker...\n");
     speaker_init();
+
+    /* Initialize PCI bus */
+    vga_print("Initializing PCI bus...\n");
+    pci_init();
+
+    /* Print detected PCI devices */
+    if (pci_get_device_count() > 0) {
+        vga_print("Detected PCI devices: ");
+        vga_print_dec(pci_get_device_count());
+        vga_print("\n");
+    }
 
     /* Initialize IDE controller */
     vga_print("Initializing IDE controller...\n");

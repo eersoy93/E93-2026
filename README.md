@@ -100,3 +100,5 @@ E93-2026/
 Copyright (c) 2026 Erdem Ersoy (eersoy93). Licensed under the Apache License 2.0. See the LICENSE file for license text.
 
 E93-2026 written with the help of GitHub Copilot!
+
+**NOTE:** media/pci.ids is licensed under GNU GPLv2. See LICENSE.GPLv2 for the license text.

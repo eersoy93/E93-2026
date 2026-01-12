@@ -12,8 +12,8 @@
 #define SYS_EXIT        0   /* Exit program */
 #define SYS_WRITE       1   /* Write to screen */
 #define SYS_READ        2   /* Read from keyboard */
-#define SYS_OPEN        3   /* Open file (reserved) */
-#define SYS_CLOSE       4   /* Close file (reserved) */
+#define SYS_FOPEN       3   /* Open file */
+#define SYS_FCLOSE      4   /* Close file */
 #define SYS_SLEEP       5   /* Sleep for milliseconds */
 #define SYS_BEEP        6   /* PC speaker beep */
 #define SYS_GETCHAR     7   /* Get single character */
@@ -21,8 +21,8 @@
 #define SYS_READDIR     9   /* Read directory entry */
 #define SYS_CLEAR       10  /* Clear screen */
 #define SYS_SETCOLOR    11  /* Set text color */
-#define SYS_CHDIR       12  /* Change directory (reserved) */
-#define SYS_GETCWD      13  /* Get current directory (reserved) */
+#define SYS_FREAD       12  /* Read from file */
+#define SYS_FSIZE       13  /* Get file size */
 #define SYS_VGA_INIT    14  /* Enter VGA graphics mode 12h (640x480x16) */
 #define SYS_VGA_EXIT    15  /* Exit VGA graphics mode */
 #define SYS_VGA_CLEAR   16  /* Clear graphics screen */
@@ -34,6 +34,8 @@
 #define SYS_VGA_INIT_X    22  /* Enter VGA graphics mode X (320x240x256) */
 #define SYS_VGA_PALETTE   23  /* Set palette entry (r, g, b packed) */
 #define SYS_VGA_INIT_Y    24  /* Enter VGA graphics mode Y (320x200x256, planar) */
+#define SYS_IDEINFO       25  /* Get IDE device information */
+#define SYS_PCIINFO       26  /* Get PCI device information */
 
 /* System call interrupt number */
 #define SYSCALL_INT     0x80

@@ -1,6 +1,6 @@
 /**
  * Userspace Library Header
- * Provides system call wrappers for userspace programs
+ * Provides general system call wrappers for userspace programs
  * 
  * This header can be used by C userspace programs
  */

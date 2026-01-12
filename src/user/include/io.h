@@ -1,6 +1,6 @@
 /**
  * I/O Library Header
- * Provides input/output functions for userspace programs
+ * Provides general input/output functions for userspace programs
  */
 
 #ifndef IO_H
@@ -11,10 +11,14 @@
 /* System call numbers for I/O */
 #define SYS_WRITE   1
 #define SYS_READ    2
+#define SYS_FOPEN   3
+#define SYS_FCLOSE  4
 #define SYS_GETCHAR 7
 #define SYS_READDIR 9
 #define SYS_CLEAR   10
 #define SYS_SETCOLOR 11
+#define SYS_FREAD   12
+#define SYS_FSIZE   13
 
 /* File descriptors */
 #define STDIN   0
@@ -199,6 +203,38 @@ static inline void print_hex(unsigned int n) {
 }
 
 /**
+ * Print a hex nibble (single hex digit)
+ * @param val: Value (0-15)
+ */
+static inline void print_hex_nibble(unsigned char val) {
+    if (val < 10) {
+        putchar('0' + val);
+    } else {
+        putchar('a' + val - 10);
+    }
+}
+
+/**
+ * Print a 16-bit hex value (4 digits, no prefix)
+ * @param val: 16-bit value to print
+ */
+static inline void print_hex16(unsigned short val) {
+    print_hex_nibble((val >> 12) & 0xF);
+    print_hex_nibble((val >> 8) & 0xF);
+    print_hex_nibble((val >> 4) & 0xF);
+    print_hex_nibble(val & 0xF);
+}
+
+/**
+ * Print an 8-bit hex value (2 digits, no prefix)
+ * @param val: 8-bit value to print
+ */
+static inline void print_hex8(unsigned char val) {
+    print_hex_nibble((val >> 4) & 0xF);
+    print_hex_nibble(val & 0xF);
+}
+
+/**
  * Print a string followed by newline
  * @param str: String to print
  * @return: Number of bytes written
@@ -246,6 +282,78 @@ static inline void print_warning(const char *str) {
  */
 static inline void print_info(const char *str) {
     print_color(str, COLOR_INFO, COLOR_BLACK);
+}
+
+/* ============================================
+ * File I/O Functions
+ * ============================================ */
+
+/**
+ * Open a file for reading
+ * @param path: Path to the file
+ * @return: File descriptor (>= 3) on success, -1 on error
+ */
+static inline int fopen(const char *path) {
+    return _io_syscall(SYS_FOPEN, (int)path, 0, 0);
+}
+
+/**
+ * Close a file
+ * @param fd: File descriptor
+ * @return: 0 on success, -1 on error
+ */
+static inline int fclose(int fd) {
+    return _io_syscall(SYS_FCLOSE, fd, 0, 0);
+}
+
+/**
+ * Read from a file
+ * @param fd: File descriptor
+ * @param buf: Buffer to read into
+ * @param size: Number of bytes to read
+ * @return: Number of bytes read, or -1 on error
+ */
+static inline int fread(int fd, char *buf, int size) {
+    return _io_syscall(SYS_FREAD, fd, (int)buf, size);
+}
+
+/**
+ * Get file size
+ * @param fd: File descriptor
+ * @return: File size in bytes, or -1 on error
+ */
+static inline int fsize(int fd) {
+    return _io_syscall(SYS_FSIZE, fd, 0, 0);
+}
+
+/**
+ * Read entire file into buffer (convenience function)
+ * Opens, reads, and closes the file
+ * @param path: Path to file
+ * @param buf: Buffer to read into
+ * @param max_size: Maximum bytes to read
+ * @return: Number of bytes read, or -1 on error
+ */
+static inline int read_file(const char *path, char *buf, int max_size) {
+    int fd = fopen(path);
+    if (fd < 0) {
+        return -1;
+    }
+    
+    int size = fsize(fd);
+    if (size < 0) {
+        fclose(fd);
+        return -1;
+    }
+    
+    if (size > max_size) {
+        size = max_size;
+    }
+    
+    int bytes_read = fread(fd, buf, size);
+    fclose(fd);
+    
+    return bytes_read;
 }
 
 #endif /* IO_H */
