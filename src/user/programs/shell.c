@@ -332,6 +332,95 @@ static void cmd_idedevs(void) {
 }
 
 /**
+ * Print bus:device.function in proper PCI format (XX:XX.X)
+ */
+static void print_bdf(unsigned char bus, unsigned char device, unsigned char function) {
+    /* Bus: 2 hex digits */
+    print_hex8(bus);
+    print(":");
+    /* Device: 2 hex digits */
+    print_hex8(device);
+    print(".");
+    /* Function: 1 digit */
+    putchar('0' + function);
+}
+
+/**
+ * Get subclass name string
+ */
+static const char *pci_subclass_name(unsigned char class_code, unsigned char subclass) {
+    switch (class_code) {
+        case PCI_CLASS_STORAGE:
+            switch (subclass) {
+                case 0x00: return "SCSI";
+                case 0x01: return "IDE";
+                case 0x02: return "Floppy";
+                case 0x03: return "IPI";
+                case 0x04: return "RAID";
+                case 0x05: return "ATA";
+                case 0x06: return "SATA";
+                case 0x07: return "SAS";
+                case 0x08: return "NVM";
+                default: return NULL;
+            }
+        case PCI_CLASS_NETWORK:
+            switch (subclass) {
+                case 0x00: return "Ethernet";
+                case 0x01: return "Token Ring";
+                case 0x02: return "FDDI";
+                case 0x03: return "ATM";
+                case 0x04: return "ISDN";
+                case 0x80: return "Other";
+                default: return NULL;
+            }
+        case PCI_CLASS_DISPLAY:
+            switch (subclass) {
+                case 0x00: return "VGA";
+                case 0x01: return "XGA";
+                case 0x02: return "3D";
+                default: return NULL;
+            }
+        case PCI_CLASS_MULTIMEDIA:
+            switch (subclass) {
+                case 0x00: return "Video";
+                case 0x01: return "Audio";
+                case 0x02: return "Telephony";
+                case 0x03: return "HD Audio";
+                default: return NULL;
+            }
+        case PCI_CLASS_BRIDGE:
+            switch (subclass) {
+                case 0x00: return "Host";
+                case 0x01: return "ISA";
+                case 0x02: return "EISA";
+                case 0x03: return "MCA";
+                case 0x04: return "PCI-PCI";
+                case 0x05: return "PCMCIA";
+                case 0x06: return "NuBus";
+                case 0x07: return "CardBus";
+                case 0x08: return "RACEway";
+                case 0x09: return "PCI-PCI";
+                case 0x0A: return "InfiniBand";
+                default: return NULL;
+            }
+        case PCI_CLASS_SERIAL_BUS:
+            switch (subclass) {
+                case 0x00: return "FireWire";
+                case 0x01: return "ACCESS";
+                case 0x02: return "SSA";
+                case 0x03: return "USB";
+                case 0x04: return "Fibre";
+                case 0x05: return "SMBus";
+                case 0x06: return "InfiniBand";
+                case 0x07: return "IPMI";
+                default: return NULL;
+            }
+        default:
+            return NULL;
+    }
+}
+
+/**
  * Built-in: pcidevs
  */
 static void cmd_pcidevs(void) {
@@ -356,14 +445,10 @@ static void cmd_pcidevs(void) {
                 continue;
             }
             
-            /* Print bus:device.function */
+            /* Print bus:device.function in proper PCI format */
             print("  ");
             setcolor(COLOR_DARK_GREY, COLOR_BLACK);
-            print_int(info.bus);
-            print(":");
-            print_int(info.device);
-            print(".");
-            print_int(info.function);
+            print_bdf(info.bus, info.device, info.function);
             print(" ");
             
             /* Print vendor:device IDs */
@@ -373,11 +458,23 @@ static void cmd_pcidevs(void) {
             print_hex16(info.device_id);
             print(" ");
             
-            /* Print class */
+            /* Print class with subclass info */
             setcolor(COLOR_LIGHT_CYAN, COLOR_BLACK);
             print("[");
             print(pci_class_name(info.class_code));
+            const char *subclass_name = pci_subclass_name(info.class_code, info.subclass);
+            if (subclass_name) {
+                print("/");
+                print(subclass_name);
+            }
             print("]");
+            
+            /* Print IRQ if assigned */
+            if (info.irq > 0 && info.irq < 255) {
+                setcolor(COLOR_DARK_GREY, COLOR_BLACK);
+                print(" IRQ: ");
+                print_int(info.irq);
+            }
             
             /* Look up vendor and device names */
             int has_vendor = pci_lookup_vendor(info.vendor_id, vendor_name);
@@ -385,7 +482,7 @@ static void cmd_pcidevs(void) {
             
             /* Print full device name on next line */
             if (has_vendor || has_device) {
-                print("\n       ");
+                print("\n           ");
                 if (has_vendor) {
                     setcolor(COLOR_WHITE, COLOR_BLACK);
                     print(vendor_name);

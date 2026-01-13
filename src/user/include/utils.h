@@ -11,6 +11,9 @@
 /* UNUSED macro to suppress unused variable warnings */
 #define UNUSED(x) (void)(x)
 
+/* NULL definition */
+#define NULL ((void *)0)
+
 /**
  * Check if character is whitespace
  */
