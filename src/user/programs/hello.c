@@ -6,8 +6,8 @@
  * Entry point: _start at virtual address 0x400000
  */
 
-#include <user.h>
 #include <io.h>
+#include <syscall.h>
 
 /* Program entry point */
 void _start(void) {

@@ -7,7 +7,7 @@
  */
 
 #include <io.h>
-#include <user.h>
+#include <syscall.h>
 #include <vga_gfx.h>
 
 /**

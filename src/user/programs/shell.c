@@ -16,7 +16,7 @@
 #include <io.h>
 #include <pci.h>
 #include <string.h>
-#include <user.h>
+#include <syscall.h>
 #include <utils.h>
 #include <version.h>
 

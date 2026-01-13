@@ -1,10 +1,10 @@
 /**
- * Userspace Library Header
+ * General System Call Library Header
  * Provides general system call wrappers for userspace programs
  */
 
-#ifndef USER_H
-#define USER_H
+#ifndef USER_SYSCALL_H
+#define USER_SYSCALL_H
 
 /* System call numbers */
 #define SYS_EXIT    0
@@ -62,4 +62,4 @@ static inline int exec(const char *path) {
     return syscall(SYS_EXEC, (int)path, 0, 0);
 }
 
-#endif /* USER_H */
+#endif /* USER_SYSCALL_H */
