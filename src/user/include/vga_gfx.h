@@ -7,8 +7,8 @@
  * - Mode Y: 320x200, 256 colors, planar (4 pages)
  */
 
-#ifndef VGA_GFX_H
-#define VGA_GFX_H
+#ifndef USER_VGA_GFX_H
+#define USER_VGA_GFX_H
 
 /* VGA Mode dimensions */
 #define GFX_WIDTH_12H   640
@@ -222,4 +222,4 @@ static inline int gfx_rgb(int r, int g, int b) {
     return (r & 0x3F) | ((g & 0x3F) << 8) | ((b & 0x3F) << 16);
 }
 
-#endif /* VGA_GFX_H */
+#endif /* USER_VGA_GFX_H */

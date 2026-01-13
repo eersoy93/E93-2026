@@ -1,5 +1,5 @@
-#ifndef VGA_FONT_USER_H
-#define VGA_FONT_USER_H
+#ifndef USER_VGA_FONT_USER_H
+#define USER_VGA_FONT_USER_H
 
 /* The font data is from https://files.osdev.org/mirrors/geezer/osd/graphics/modes.c */
 const uint8_t vga_font_user_8x16[4096] = {
@@ -261,4 +261,4 @@ const uint8_t vga_font_user_8x16[4096] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-#endif // VGA_FONT_H
+#endif // USER_VGA_FONT_USER_H

@@ -3,8 +3,8 @@
  * Provides version and copyright information for userspace programs
  */
 
-#ifndef VERSION_H
-#define VERSION_H
+#ifndef USER_VERSION_H
+#define USER_VERSION_H
 
 #define OS_VERSION_MAJOR 0
 #define OS_VERSION_MINOR 1
@@ -16,4 +16,4 @@
 #define COPYRIGHT_TEXT "Copyright (c) " STRINGIFY(COPYRIGHT_YEAR) " Erdem Ersoy (eersoy93)"
 #define LICENSE_TEXT "Licensed under the Apache License 2.0."
 
-#endif /* VERSION_H */
+#endif /* USER_VERSION_H */

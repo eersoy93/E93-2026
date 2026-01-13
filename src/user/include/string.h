@@ -3,8 +3,8 @@
  * Provides string and memory manipulation functions for userspace programs
  */
 
-#ifndef STRING_H
-#define STRING_H
+#ifndef USER_STRING_H
+#define USER_STRING_H
 
 #define STRINGIFY_HELPER(x) #x
 #define STRINGIFY(x) STRINGIFY_HELPER(x)
@@ -233,4 +233,4 @@ static inline size_t strcspn(const char *s, const char *reject) {
     return count;
 }
 
-#endif /* STRING_H */
+#endif /* USER_STRING_H */

@@ -3,8 +3,8 @@
  * Provides common utility functions for userspace programs
  */
 
-#ifndef UTILS_H
-#define UTILS_H
+#ifndef USER_UTILS_H
+#define USER_UTILS_H
 
 #include <string.h>
 
@@ -347,4 +347,4 @@ static inline int clamp(int value, int min_val, int max_val) {
     return value;
 }
 
-#endif /* UTILS_H */
+#endif /* USER_UTILS_H */

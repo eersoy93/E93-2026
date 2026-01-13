@@ -3,8 +3,8 @@
  * Provides general input/output functions for userspace programs
  */
 
-#ifndef IO_H
-#define IO_H
+#ifndef USER_IO_H
+#define USER_IO_H
 
 #include <string.h>
 
@@ -356,4 +356,4 @@ static inline int read_file(const char *path, char *buf, int max_size) {
     return bytes_read;
 }
 
-#endif /* IO_H */
+#endif /* USER_O_H */
