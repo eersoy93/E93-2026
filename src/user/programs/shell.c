@@ -50,60 +50,64 @@ static void cmd_help(void) {
     print("E93-2026 Shell Commands:\n");
     print("------------------------\n");
     setcolor(COLOR_YELLOW, COLOR_BLACK);
-    print("  help          ");
+    print("  beep          ");
     setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
-    print("- Show this help message\n");
-    setcolor(COLOR_YELLOW, COLOR_BLACK);
-    print("  ls [dir]      ");
-    setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
-    print("- List directory contents\n");
-    setcolor(COLOR_YELLOW, COLOR_BLACK);
-    print("  pwd           ");
-    setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
-    print("- Print working directory\n");
+    print("- Play a beep sound\n");
     setcolor(COLOR_YELLOW, COLOR_BLACK);
     print("  cd <dir>      ");
     setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
     print("- Change directory\n");
     setcolor(COLOR_YELLOW, COLOR_BLACK);
-    print("  clear         ");
+    print("  cls           ");
     setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
     print("- Clear the screen\n");
+    setcolor(COLOR_YELLOW, COLOR_BLACK);
+    print("  curdir        ");
+    setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
+    print("- Print working directory\n");
+    setcolor(COLOR_YELLOW, COLOR_BLACK);
+    print("  dir [path]    ");
+    setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
+    print("- List directory contents\n");
     setcolor(COLOR_YELLOW, COLOR_BLACK);
     print("  echo <text>   ");
     setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
     print("- Print text to screen\n");
     setcolor(COLOR_YELLOW, COLOR_BLACK);
-    print("  beep          ");
+    print("  exit          ");
     setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
-    print("- Play a beep sound\n");
+    print("- Exit shell and halt system\n");
     setcolor(COLOR_YELLOW, COLOR_BLACK);
-    print("  run <program> ");
+    print("  help          ");
     setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
-    print("- Run a program from /user/\n");
+    print("- Show this help message\n");
     setcolor(COLOR_YELLOW, COLOR_BLACK);
     print("  idedevs       ");
     setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
     print("- Show IDE devices\n");
     setcolor(COLOR_YELLOW, COLOR_BLACK);
+    print("  mem           ");
+    setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
+    print("- Show memory information\n");
+    setcolor(COLOR_YELLOW, COLOR_BLACK);
     print("  pcidevs       ");
     setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
     print("- Show PCI devices\n");
     setcolor(COLOR_YELLOW, COLOR_BLACK);
+    print("  run <program> ");
+    setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
+    print("- Run a program from /user/\n");
+    setcolor(COLOR_YELLOW, COLOR_BLACK);
     print("  version       ");
     setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
     print("- Show version information\n");
-    setcolor(COLOR_YELLOW, COLOR_BLACK);
-    print("  exit          ");
-    setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
-    print("- Exit shell and halt system\n");
     print("\n");
 }
 
 /**
  * Built-in: ls
  */
-static void cmd_ls(const char *path) {
+static void cmd_dir(const char *path) {
     char entry[256];
     int index = 0;
     int count = 0;
@@ -151,7 +155,7 @@ static void cmd_ls(const char *path) {
 /**
  * Built-in: pwd
  */
-static void cmd_pwd(void) {
+static void cmd_curdir(void) {
     print_color(cwd, COLOR_WHITE, COLOR_BLACK);
     newline();
 }
@@ -216,7 +220,7 @@ static void cmd_cd(const char *path) {
 /**
  * Built-in: clear
  */
-static void cmd_clear(void) {
+static void cmd_cls(void) {
     clear();
 }
 
@@ -326,7 +330,7 @@ static void cmd_idedevs(void) {
     print("\n");
     setcolor(COLOR_DARK_GREY, COLOR_BLACK);
     print_int(count);
-    print(" drive(s) detected\n");
+    print(" drive(s) detected.\n");
     setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
     print("\n");
 }
@@ -437,7 +441,7 @@ static void cmd_pcidevs(void) {
     
     if (count == 0) {
         setcolor(COLOR_DARK_GREY, COLOR_BLACK);
-        print("  No PCI devices found\n");
+        print("  No PCI devices found!\n");
         setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
     } else {
         for (int i = 0; i < count; i++) {
@@ -505,9 +509,65 @@ static void cmd_pcidevs(void) {
     print("\n");
     setcolor(COLOR_DARK_GREY, COLOR_BLACK);
     print_int(count);
-    print(" device(s) detected\n");
+    print(" device(s) detected.\n");
     setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
     print("\n");
+}
+
+/**
+ * Built-in: mem
+ */
+static void cmd_mem(void) {
+    mem_info_t info;
+    
+    if (get_mem_info(&info) < 0) {
+        print_error("Failed to get memory information!\n");
+        return;
+    }
+    
+    print("\n");
+    setcolor(COLOR_LIGHT_CYAN, COLOR_BLACK);
+    print("Memory Information:\n");
+    print("-------------------\n");
+    
+    /* Lower memory (below 1MB) */
+    setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
+    print("  Lower memory:  ");
+    setcolor(COLOR_WHITE, COLOR_BLACK);
+    print_int(info.mem_lower);
+    print(" KB\n");
+    
+    /* Upper memory (above 1MB) */
+    setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
+    print("  Upper memory:  ");
+    setcolor(COLOR_WHITE, COLOR_BLACK);
+    if (info.mem_upper >= 1024) {
+        print_int(info.mem_upper / 1024);
+        print(" MB (");
+        print_int(info.mem_upper);
+        print(" KB)");
+    } else {
+        print_int(info.mem_upper);
+        print(" KB");
+    }
+    print("\n");
+    
+    /* Total memory */
+    print("  ");
+    setcolor(COLOR_DARK_GREY, COLOR_BLACK);
+    print("---------------\n");
+    setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
+    print("  Total memory:  ");
+    setcolor(COLOR_LIGHT_GREEN, COLOR_BLACK);
+    if (info.total_kb >= 1024) {
+        print_int(info.total_kb / 1024);
+        print(" MB");
+    } else {
+        print_int(info.total_kb);
+        print(" KB");
+    }
+    setcolor(COLOR_LIGHT_GREY, COLOR_BLACK);
+    print("\n\n");
 }
 
 /**
@@ -553,20 +613,20 @@ static void process_command(char *line) {
     str_tolower(cmd);
     
     /* Check built-in commands */
-    if (strcmp(cmd, "help") == 0 || strcmp(cmd, "?") == 0) {
+    if (strcmp(cmd, "help") == 0) {
         cmd_help();
     }
-    else if (strcmp(cmd, "ls") == 0 || strcmp(cmd, "dir") == 0) {
-        cmd_ls(rest);
+    else if (strcmp(cmd, "dir") == 0) {
+        cmd_dir(rest);
     }
-    else if (strcmp(cmd, "pwd") == 0) {
-        cmd_pwd();
+    else if (strcmp(cmd, "curdir") == 0) {
+        cmd_curdir();
     }
     else if (strcmp(cmd, "cd") == 0) {
         cmd_cd(rest);
     }
-    else if (strcmp(cmd, "clear") == 0 || strcmp(cmd, "cls") == 0) {
-        cmd_clear();
+    else if (strcmp(cmd, "cls") == 0) {
+        cmd_cls();
     }
     else if (strcmp(cmd, "echo") == 0) {
         cmd_echo(rest);
@@ -582,6 +642,9 @@ static void process_command(char *line) {
     }
     else if (strcmp(cmd, "pcidevs") == 0) {
         cmd_pcidevs();
+    }
+    else if (strcmp(cmd, "mem") == 0 || strcmp(cmd, "memory") == 0) {
+        cmd_mem();
     }
     else if (strcmp(cmd, "run") == 0) {
         cmd_run(rest);

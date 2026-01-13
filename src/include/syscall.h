@@ -36,6 +36,7 @@
 #define SYS_VGA_INIT_Y    24  /* Enter VGA graphics mode Y (320x200x256, planar) */
 #define SYS_IDEINFO       25  /* Get IDE device information */
 #define SYS_PCIINFO       26  /* Get PCI device information */
+#define SYS_MEMINFO       27  /* Get memory information */
 
 /* System call interrupt number */
 #define SYSCALL_INT     0x80

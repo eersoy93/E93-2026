@@ -11,6 +11,14 @@
 #define SYS_SLEEP   5
 #define SYS_BEEP    6
 #define SYS_EXEC    8
+#define SYS_MEMINFO 27
+
+/* Memory information structure */
+typedef struct {
+    unsigned int mem_lower;     /* Lower memory in KB (below 1MB) */
+    unsigned int mem_upper;     /* Upper memory in KB (above 1MB) */
+    unsigned int total_kb;      /* Total usable memory in KB */
+} mem_info_t;
 
 /**
  * Make a system call with up to 3 arguments
@@ -60,6 +68,15 @@ static inline void beep(int freq, int duration) {
  */
 static inline int exec(const char *path) {
     return syscall(SYS_EXEC, (int)path, 0, 0);
+}
+
+/**
+ * Get memory information
+ * @param info: Pointer to mem_info_t structure to fill
+ * @return: 0 on success, -1 on error
+ */
+static inline int get_mem_info(mem_info_t *info) {
+    return syscall(SYS_MEMINFO, (int)info, 0, 0);
 }
 
 #endif /* USER_SYSCALL_H */

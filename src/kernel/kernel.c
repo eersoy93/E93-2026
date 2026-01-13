@@ -20,6 +20,28 @@
 /* Multiboot magic number */
 #define MULTIBOOT_MAGIC 0x2BADB002
 
+/* Multiboot info structure offsets */
+#define MBOOT_FLAGS     0
+#define MBOOT_MEM_LOWER 4
+#define MBOOT_MEM_UPPER 8
+
+/* Multiboot flags */
+#define MBOOT_FLAG_MEM  (1 << 0)
+
+/* Stored memory information */
+static mem_info_t kernel_mem_info;
+
+/**
+ * Get memory information
+ */
+void kernel_get_mem_info(mem_info_t *info) {
+    if (info) {
+        info->mem_lower = kernel_mem_info.mem_lower;
+        info->mem_upper = kernel_mem_info.mem_upper;
+        info->total_kb = kernel_mem_info.total_kb;
+    }
+}
+
 /**
  * Kernel main entry point
  * Called from boot.asm after setting up the stack
@@ -34,6 +56,22 @@ void kernel_main(unsigned int magic, unsigned int *mboot_info) {
         vga_set_color(VGA_COLOR_ERROR, VGA_COLOR_BLACK);
         vga_print("Error: Invalid Multiboot magic number!\n");
         return;
+    }
+
+    /* Parse multiboot memory information */
+    kernel_mem_info.mem_lower = 0;
+    kernel_mem_info.mem_upper = 0;
+    kernel_mem_info.total_kb = 0;
+    
+    if (mboot_info) {
+        uint32_t flags = mboot_info[MBOOT_FLAGS / 4];
+        if (flags & MBOOT_FLAG_MEM) {
+            kernel_mem_info.mem_lower = mboot_info[MBOOT_MEM_LOWER / 4];
+            kernel_mem_info.mem_upper = mboot_info[MBOOT_MEM_UPPER / 4];
+            /* Total = lower + upper + 1MB (the first MB between lower and upper) */
+            kernel_mem_info.total_kb = kernel_mem_info.mem_lower + 
+                                       kernel_mem_info.mem_upper + 1024;
+        }
     }
 
     /* Initialize IDT (Interrupt Descriptor Table) */
@@ -145,6 +183,4 @@ void kernel_main(unsigned int magic, unsigned int *mboot_info) {
     while (1) {
         __asm__ volatile("hlt");
     }
-
-    UNUSED(mboot_info); /* Suppress unused variable warning */
 }

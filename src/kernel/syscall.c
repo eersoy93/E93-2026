@@ -6,6 +6,7 @@
 #include <fs.h>
 #include <ide.h>
 #include <idt.h>
+#include <kernel.h>
 #include <keyboard.h>
 #include <loader.h>
 #include <pci.h>
@@ -43,6 +44,7 @@ static int sys_vga_init_y(uint32_t unused1, uint32_t unused2, uint32_t unused3);
 static int sys_vga_palette(uint32_t index, uint32_t rgb, uint32_t unused);
 static int sys_ideinfo(uint32_t drive, uint32_t buf, uint32_t unused);
 static int sys_pciinfo(uint32_t index, uint32_t buf, uint32_t unused);
+static int sys_meminfo(uint32_t buf, uint32_t unused1, uint32_t unused2);
 static int sys_fopen(uint32_t path, uint32_t unused1, uint32_t unused2);
 static int sys_fclose(uint32_t fd, uint32_t unused1, uint32_t unused2);
 static int sys_fread(uint32_t fd, uint32_t buf, uint32_t size);
@@ -86,6 +88,7 @@ static syscall_fn syscall_table[NUM_SYSCALLS] = {
     [SYS_VGA_INIT_Y]   = sys_vga_init_y,
     [SYS_IDEINFO]      = sys_ideinfo,
     [SYS_PCIINFO]      = sys_pciinfo,
+    [SYS_MEMINFO]      = sys_meminfo,
 };
 
 /**
@@ -532,6 +535,26 @@ static int sys_pciinfo(uint32_t index, uint32_t buf, uint32_t unused) {
     /* Copy header_type and irq (offset 12, 2 bytes) */
     ubuf[12] = dev->header_type;
     ubuf[13] = dev->irq;
+    
+    return 0;
+}
+
+/**
+ * SYS_MEMINFO - Get memory information
+ * @param buf: Pointer to mem_info_t structure to fill
+ * @return: 0 on success
+ */
+static int sys_meminfo(uint32_t buf, uint32_t unused1, uint32_t unused2) {
+    (void)unused1;
+    (void)unused2;
+    
+    if (!buf) {
+        return -1;
+    }
+    
+    /* Copy memory info to user buffer */
+    mem_info_t *info = (mem_info_t *)buf;
+    kernel_get_mem_info(info);
     
     return 0;
 }
