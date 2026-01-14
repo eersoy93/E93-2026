@@ -5,7 +5,7 @@ The new E93! E93-2026!
 
 A minimal 32-bit operating system kernel that boots via GRUB2 (Multiboot specification). Written in C and x86 Assembly.
 
-![E93-2026 0.1.0 Screenshot](media/E93-2026_0_1_0.png)
+![E93-2026 0.2.0 Screenshot](media/E93-2026_0_2_0.png)
 
 ### Features
 
