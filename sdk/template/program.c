@@ -10,7 +10,7 @@
  * Entry point: _start at virtual address 0x400000
  */
 
-#include <user.h>
+#include <syscall.h>
 #include <io.h>
 #include <version.h>
 

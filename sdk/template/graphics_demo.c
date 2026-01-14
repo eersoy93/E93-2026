@@ -8,7 +8,7 @@
  * Run with:   make run
  */
 
-#include <user.h>
+#include <syscall.h>
 #include <io.h>
 #include <vga_gfx.h>
 

@@ -7,7 +7,7 @@ This guide covers console input/output programming for E93-2026 user programs.
 ### Print String
 
 ```c
-#include <user.h>
+#include <syscall.h>
 #include <io.h>
 
 void _start(void) {
@@ -266,6 +266,25 @@ int n = parse_int("123");   /* Decimal */
 
 ## Hardware Information
 
+### Memory Information
+
+```c
+#include <syscall.h>
+
+mem_info_t info;
+if (get_mem_info(&info) == 0) {
+    print("Lower memory: ");
+    print_int(info.mem_lower);
+    print(" KB\n");
+    print("Upper memory: ");
+    print_int(info.mem_upper);
+    print(" KB\n");
+    print("Total memory: ");
+    print_int(info.total_kb);
+    print(" KB\n");
+}
+```
+
 ### IDE Devices
 
 ```c
@@ -311,7 +330,7 @@ pci_lookup_ids(info.vendor_id, info.device_id, vendor_name, device_name, sizeof(
 ## Example: Interactive Program
 
 ```c
-#include <user.h>
+#include <syscall.h>
 #include <io.h>
 
 void _start(void) {

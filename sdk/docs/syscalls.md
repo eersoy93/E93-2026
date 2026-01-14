@@ -2,6 +2,13 @@
 
 System calls are the interface between user programs and the kernel. They are invoked using interrupt `0x80`.
 
+**Headers:**
+- General syscalls (exit, sleep, beep, exec, meminfo): `#include <syscall.h>`
+- I/O syscalls (write, read, file operations): `#include <io.h>`
+- Graphics syscalls: `#include <vga_gfx.h>`
+- IDE syscalls: `#include <ide.h>`
+- PCI syscalls: `#include <pci.h>`
+
 ## System Call Convention
 
 - **EAX**: System call number
@@ -204,6 +211,29 @@ int fsize(int fd);
 - `fd`: File descriptor
 
 **Returns:** File size in bytes, -1 on error
+
+---
+
+### SYS_MEMINFO (27)
+Get system memory information.
+
+```c
+int get_mem_info(mem_info_t *info);
+```
+
+**Arguments:**
+- `info`: Pointer to mem_info_t structure to fill
+
+**mem_info_t structure:**
+```c
+typedef struct {
+    unsigned int mem_lower;     /* Lower memory in KB (below 1MB) */
+    unsigned int mem_upper;     /* Upper memory in KB (above 1MB) */
+    unsigned int total_kb;      /* Total usable memory in KB */
+} mem_info_t;
+```
+
+**Returns:** 0 on success, -1 on error
 
 ## Hardware Information System Calls
 

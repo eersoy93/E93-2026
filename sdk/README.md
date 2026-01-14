@@ -28,10 +28,10 @@ All headers are in `src/user/include/`. Headers must be included separately base
 
 | Header | Description |
 |--------|-------------|
-| `user.h` | Core syscall wrappers (exit, sleep, beep, exec) |
-| `utils.h` | Type definitions, utility functions (isdigit, atoi, etc.) |
+| `syscall.h` | Core syscall wrappers (exit, sleep, beep, exec, get_mem_info) |
 | `io.h` | Console I/O (print, readline, colors) and file I/O |
-| `string.h` | String manipulation functions |
+| `string.h` | String manipulation functions (strlen, strcmp, strcpy, etc.) |
+| `utils.h` | Character utilities (isdigit, isalpha, atoi, itoa, etc.) |
 | `vga_gfx.h` | VGA graphics modes and drawing |
 | `vga_font_user.h` | 8x8 bitmap font for graphics mode |
 | `ide.h` | IDE device information |
@@ -39,16 +39,16 @@ All headers are in `src/user/include/`. Headers must be included separately base
 | `version.h` | OS version information |
 
 **Note:** Include only the headers you need. Common combinations:
-- Console programs: `user.h`, `io.h`
-- Graphics programs: `user.h`, `io.h`, `vga_gfx.h`
-- Full shell-like programs: `user.h`, `io.h`, `string.h`, `utils.h`, `version.h`
+- Console programs: `syscall.h`, `io.h`
+- Graphics programs: `syscall.h`, `io.h`, `vga_gfx.h`
+- Full shell-like programs: `syscall.h`, `io.h`, `string.h`, `utils.h`, `version.h`
 
 ## Program Entry Point
 
 All programs must define a `_start` function as the entry point:
 
 ```c
-#include <user.h>
+#include <syscall.h>
 #include <io.h>
 
 void _start(void) {

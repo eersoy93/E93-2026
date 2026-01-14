@@ -17,24 +17,26 @@ A minimal 32-bit operating system kernel that boots via GRUB2 (Multiboot specifi
   - Mode Y: 320x200, 256 colors (planar)
 - **Userspace Programs** - ELF32 executables loaded from ISO9660 filesystem
 - **Interactive Shell** - Built-in shell with commands:
-  - `help` - Show available commands
-  - `ls [dir]` - List directory contents
-  - `pwd` - Print working directory
-  - `cd <dir>` - Change directory
-  - `clear` - Clear the screen
-  - `echo <text>` - Print text
   - `beep` - Play a beep sound
-  - `run <program>` - Run a program
-  - `idedevs` - Show IDE devices
-  - `pcidevs` - Show PCI devices
-  - `version` - Show version information
+  - `cd <dir>` - Change directory
+  - `cls` - Clear the screen
+  - `curdir` - Print working directory
+  - `dir [path]` - List directory contents
+  - `echo <text>` - Print text
   - `exit` - Exit shell and halt system
+  - `help` - Show available commands
+  - `idedevs` - Show IDE devices
+  - `mem` - Show memory information
+  - `pcidevs` - Show PCI devices
+  - `run <program>` - Run a program
+  - `version` - Show version information
 - **System Calls** - INT 0x80 based syscall interface
+- **Memory Info** - System memory information via Multiboot
 - **File I/O** - Read files from the ISO9660 filesystem
 - **PC Speaker** - Beep sound support
 - **IDE Controller** - IDE/ATAPI device detection and information
 - **PCI Bus** - PCI device enumeration with pci.ids database lookup
-- **IDE/ISO9660** - Read-only filesystem support
+- **ISO9660** - Read-only filesystem support
 
 ## Prerequisites
 
